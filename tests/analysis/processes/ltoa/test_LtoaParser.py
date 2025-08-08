@@ -7,8 +7,8 @@ NFBYTES = 1048576  # 1 MB
 TXTFILE = "output.txt"
 MAXEVENT = 1000000
 
-class TestPreprocessing(unittest.TestCase):
-    def test_preprocess_data(self):
+class TestLtoaParser(unittest.TestCase):
+    def test_ltoa_parser(self):
         # read expected result
         with open("tests/analysis/processes/ltoa/expected.txt", 'r') as f:
             flt_expected_lines = f.read().split(' \n')[:-1]

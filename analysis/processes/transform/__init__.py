@@ -1,10 +1,11 @@
+import os
 import sys
 import numpy as np
 
 def read_bparams(filename="Bparams.txt", tofchmin=1, tofchmax=8192):
-    B0 = np.zeros(8192)
-    B1 = np.zeros(8192)
-    B2 = np.zeros(8192)
+    B0 = np.zeros(tofchmax)
+    B1 = np.zeros(tofchmax)
+    B2 = np.zeros(tofchmax)
 
     try:
         with open(filename, 'r') as f:
@@ -28,6 +29,8 @@ def read_bparams(filename="Bparams.txt", tofchmin=1, tofchmax=8192):
     return B0, B1, B2
 
 def read_tof_calibration(filename="tof.in"):
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"Could not find tof file `{filename}`.")
     try:
         with open(filename, 'r') as f:
             for line in f:
@@ -38,10 +41,8 @@ def read_tof_calibration(filename="tof.in"):
                     return ns_ch, t_offs
     except IOError:
         pass
-
-    print("calibration not found in tof.in")
-    input("Press Enter to exit...")
-    sys.exit(1)
+    
+    raise RuntimeError("calibration not found in tof.in")
 
 def process_file(input_filename, B0, B1, B2, ns_ch, t_offs, tofchmin=1, tofchmax=8192):
     nrlines = 0

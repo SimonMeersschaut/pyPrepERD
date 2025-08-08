@@ -1,0 +1,11 @@
+Beam: 35Cl
+Energy: 9
+Detector angle: 40
+Target angle: 20
+Toflen: 0.754
+Carbon foil thickness: 5
+Target density: 2.27
+TOF calibration: 5.82033E-11 -4.28867E-09
+Depth step for stopping: 15
+Depth step for output: 20
+Depths for concentration scaling: 100 800
