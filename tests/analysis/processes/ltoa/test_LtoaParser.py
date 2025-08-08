@@ -21,3 +21,6 @@ class TestPreprocessing(unittest.TestCase):
 
         for i in range(len(flt_expected_lines)):
             self.assertEqual(flt_expected_lines[i], flt_computed_lines[i], f"Line {i} did not match the expected output.")
+        
+    def test_file_not_exist(self):
+        self.assertRaises(FileNotFoundError, lambda: LtoaParser("tests/analysis/processes/ltoa/this_file_does_not_exist.lst"))

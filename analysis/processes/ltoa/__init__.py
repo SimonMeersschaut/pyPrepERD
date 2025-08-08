@@ -5,12 +5,14 @@ import os
 MAX_NADC = 16
 ADC_SIZE = 2  # bytes per ADC value
 NFBYTES = 1048576  # 1 MB
-TXTFILE = "output.txt"
 MAXEVENT = 1000000
 
 
 class LtoaParser:
     def __init__(self, fname):
+        if not os.path.exists(fname):
+            raise FileNotFoundError(f"{fname} was not found.")
+        
         self.fname = fname
         self.fp = open(fname, "rb") if fname else os.fdopen(0, "rb")
         self.fbytes = self.fp.read(NFBYTES)
@@ -32,19 +34,17 @@ class LtoaParser:
         printarray = [0] * MAX_NADC
         event = [0] * MAX_NADC
 
-        with open(TXTFILE, "w") as output_file:
-            while datafile_read_event(self, event, active):
-                j = 0
-                for i in range(nadc_length):
-                    if active[i]:
-                        printarray[i] = event[j]
-                        j += 1
-                    else:
-                        printarray[i] = 0
-                
-                if printarray[nadc_length - 1] != 0:
-                    output.append(" ".join(map(str, printarray[:nadc_length])))
-                    # output_file.write(" ".join(map(str, printarray[:nadc_length])) + "\n")
+        while datafile_read_event(self, event, active):
+            j = 0
+            for i in range(nadc_length):
+                if active[i]:
+                    printarray[i] = event[j]
+                    j += 1
+                else:
+                    printarray[i] = 0
+            
+            if printarray[nadc_length - 1] != 0:
+                output.append(" ".join(map(str, printarray[:nadc_length])))
 
         self.close()
         
