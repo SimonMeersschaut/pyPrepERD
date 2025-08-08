@@ -17,6 +17,7 @@ class TestLtoaParser(unittest.TestCase):
         df = LtoaParser("tests/analysis/processes/ltoa/ERD16_075_01A.lst")
         flt_computed_lines = df.parse() #.split('\n')
 
+        # test equality
         self.assertEqual(len(flt_expected_lines), len(flt_computed_lines), "Nunber of lines did not match expected value.")
 
         for i in range(len(flt_expected_lines)):

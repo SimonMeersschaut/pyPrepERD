@@ -2,10 +2,16 @@ import os
 import sys
 import numpy as np
 
-def read_bparams(filename="Bparams.txt", tofchmin=1, tofchmax=8192):
-    B0 = np.zeros(tofchmax)
-    B1 = np.zeros(tofchmax)
-    B2 = np.zeros(tofchmax)
+def read_bparams(filename, tofchmin=1, tofchmax=8192):
+    """
+    filename: bparams (B0, B1, B2)
+    """
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"Bparam file {filename} not found.")
+    B0 = np.zeros(tofchmax+1)
+    B1 = np.zeros(tofchmax+1)
+    B2 = np.zeros(tofchmax+1)
+    # B0[0] will be unused, equal to zero. (analog for B1, B2)
 
     try:
         with open(filename, 'r') as f:
@@ -17,9 +23,9 @@ def read_bparams(filename="Bparams.txt", tofchmin=1, tofchmax=8192):
                 if len(parts) < 6:
                     continue
                 ch = int(parts[0])
-                B0[i] = float(parts[2])
-                B1[i] = float(parts[3])
-                B2[i] = float(parts[4])
+                B0[ch] = float(parts[2])
+                B1[ch] = float(parts[3])
+                B2[ch] = float(parts[4])
     except IOError:
         print("error opening Bparams.txt")
         print("  please verify if it was copied by _set_params.bat")
@@ -44,12 +50,12 @@ def read_tof_calibration(filename):
     
     raise RuntimeError("calibration not found in tof.in")
 
-def process_file(input_filename, B0, B1, B2, ns_ch, t_offs, tofchmin=1, tofchmax=8192):
+def process_file(input_filename, output_filename, B0, B1, B2, ns_ch, t_offs, tofchmin=1, tofchmax=8192):
     nrlines = 0
     effnrlines = 0
 
     try:
-        with open(input_filename, 'r') as fin, open("tmp.ext", 'w') as fout:
+        with open(input_filename, 'r') as fin, open(output_filename, 'w') as fout:
             for line in fin:
                 nrlines += 1
                 parts = line.strip().split()
@@ -62,10 +68,12 @@ def process_file(input_filename, B0, B1, B2, ns_ch, t_offs, tofchmin=1, tofchmax
                     continue
 
                 if tofchmin <= ToFch <= tofchmax:
-                    idx = ToFch - 1  # 0-based for Python arrays
+                    idx = ToFch
                     ToFns = 1.0e9 * (t_offs + ns_ch * ToFch)
                     Iso_amu = B0[idx] + B1[idx]*Ench + B2[idx]*Ench*Ench
-                    Iso_ch = int(min(9999, max(1, round(Iso_amu * 100.0))))
+                    Iso_ch = int(min(8000, max(1, int(Iso_amu * 100.0 + 0.5))))
+                    # 80 is the maximum atomic number allowed,
+                    # all data greather will be clipped
 
                     fout.write(f"{ToFch:7d} {ToFns:12.3f} {Ench:7d} {Iso_amu:11.4f} {Iso_ch:7d}\n")
                     effnrlines += 1
