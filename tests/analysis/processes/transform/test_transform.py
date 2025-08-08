@@ -8,5 +8,5 @@ class TestTransform(unittest.TestCase):
         tofchmax = 8192
 
         B0, B1, B2 = read_bparams("tests/analysis/processes/transform/Bparams.txt", tofchmin, tofchmax)
-        ns_ch, t_offs = read_tof_calibration("tests/analysis/processes/transform/tof.in")
+        ns_ch, t_offs = read_tof_calibration("tests/analysis/processes/transform/Tof.in")
         process_file(input_filename, B0, B1, B2, ns_ch, t_offs, tofchmin, tofchmax)

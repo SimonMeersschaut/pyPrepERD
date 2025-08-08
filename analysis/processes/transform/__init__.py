@@ -28,7 +28,7 @@ def read_bparams(filename="Bparams.txt", tofchmin=1, tofchmax=8192):
 
     return B0, B1, B2
 
-def read_tof_calibration(filename="tof.in"):
+def read_tof_calibration(filename):
     if not os.path.exists(filename):
         raise FileNotFoundError(f"Could not find tof file `{filename}`.")
     try:
