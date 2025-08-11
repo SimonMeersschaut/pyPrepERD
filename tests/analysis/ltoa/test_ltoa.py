@@ -4,7 +4,7 @@ import analysis
 import numpy as np
 import os
 
-class TestLtoaParser(unittest.TestCase):
+class TestLtoa(unittest.TestCase):
     def test_load_lst_file(self):
         flt_computed_lines = analysis.load_lst_file("tests/analysis/ltoa/ERD16_075_01A.lst")
 

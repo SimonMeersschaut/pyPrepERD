@@ -9,9 +9,10 @@ def load_lst_file(filename: str) -> np.array:
     Opens `filename`, reads the contents and parses the
     binary data to a numpy array with the following dimensions:
     [
-        (time, energy),
+        (time_k, energy_k),
         ...
     ].
+    `k` denotes that this unit is expressed per channel.
     """
     # check file exists
     if not os.path.exists(filename):
