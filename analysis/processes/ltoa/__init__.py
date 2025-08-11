@@ -1,5 +1,17 @@
+from analysis.processes import Process
 import struct
 import os
+
+
+class LtoaParser(Process):
+    """
+    This process reads in a `.lst` file and outputs a `.flt` file.
+    The working of this script is analog to the old ltoax64.
+    """
+
+    def run(fname):
+        ...
+
 
 # Constants (same as in the original C code)
 MAX_NADC = 16
@@ -8,7 +20,8 @@ NFBYTES = 1048576  # 1 MB
 MAXEVENT = 1000000
 
 
-class LtoaParser:
+class LtoaProcess(Process):
+    
     def __init__(self, fname):
         if not os.path.exists(fname):
             raise FileNotFoundError(f"{fname} was not found.")
@@ -26,7 +39,7 @@ class LtoaParser:
 
         self.skip_header()
     
-    def parse(self):
+    def run(self):
         output = []
 
         nadc_length = self.nadc
@@ -34,7 +47,7 @@ class LtoaParser:
         printarray = [0] * MAX_NADC
         event = [0] * MAX_NADC
 
-        while datafile_read_event(self, event, active):
+        while self.datafile_read_event(event, active):
             j = 0
             for i in range(nadc_length):
                 if active[i]:
@@ -79,48 +92,48 @@ class LtoaParser:
         self.fp.close()
 
 
-def nactive_adc(w, active):
-    n = 0
-    for j in range(len(active)):
-        if w & (1 << j):
-            active[j] = True
-            n += 1
-        else:
-            active[j] = False
-    return n
+    def nactive_adc(self, w, active):
+        n = 0
+        for j in range(len(active)):
+            if w & (1 << j):
+                active[j] = True
+                n += 1
+            else:
+                active[j] = False
+        return n
 
 
-def datafile_read_event(df, event, active):
-    while True:
-        dw_bytes = df.nextbytes(4)
-        if len(dw_bytes) < 4:
-            return False
-
-        dw = struct.unpack("<I", dw_bytes)[0]
-        hw = dw >> 16
-        lw = dw & 0xFFFF
-
-        if dw == 0xFFFFFFFF:
-            continue  # Sync event
-        elif hw == 0x4000:
-            df.ntimer += 1
-        else:
-            n = nactive_adc(lw, active)
-            if dw & 0x10000000:
-                rtc_bytes = df.nextbytes(6)
-                if len(rtc_bytes) < 6:
-                    return False
-                df.nrtc += 1
-            if dw & 0x80000000:
-                dummy = df.nextbytes(2)
-                if len(dummy) < 2:
-                    return False
-                if not (hw & 0x8000):
-                    df.nerrors += 1
-            adc_bytes = df.nextbytes(n * ADC_SIZE)
-            if len(adc_bytes) < n * ADC_SIZE:
+    def datafile_read_event(self, event, active):
+        while True:
+            dw_bytes = self.nextbytes(4)
+            if len(dw_bytes) < 4:
                 return False
-            for i in range(n):
-                event[i] = struct.unpack_from("<H", adc_bytes, i * 2)[0]
-            df.nevents += 1
-            return True
+
+            dw = struct.unpack("<I", dw_bytes)[0]
+            hw = dw >> 16
+            lw = dw & 0xFFFF
+
+            if dw == 0xFFFFFFFF:
+                continue  # Sync event
+            elif hw == 0x4000:
+                self.ntimer += 1
+            else:
+                n = self.nactive_adc(lw, active)
+                if dw & 0x10000000:
+                    rtc_bytes = self.nextbytes(6)
+                    if len(rtc_bytes) < 6:
+                        return False
+                    self.nrtc += 1
+                if dw & 0x80000000:
+                    dummy = self.nextbytes(2)
+                    if len(dummy) < 2:
+                        return False
+                    if not (hw & 0x8000):
+                        self.nerrors += 1
+                adc_bytes = self.nextbytes(n * ADC_SIZE)
+                if len(adc_bytes) < n * ADC_SIZE:
+                    return False
+                for i in range(n):
+                    event[i] = struct.unpack_from("<H", adc_bytes, i * 2)[0]
+                self.nevents += 1
+                return True

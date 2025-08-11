@@ -2,6 +2,9 @@ import os
 import sys
 import numpy as np
 
+class TransformProcess():
+    ...
+
 def read_bparams(filename, tofchmin=1, tofchmax=8192):
     """
     filename: bparams (B0, B1, B2)

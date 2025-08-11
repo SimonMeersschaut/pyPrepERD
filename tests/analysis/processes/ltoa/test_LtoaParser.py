@@ -1,5 +1,6 @@
 import unittest
-from analysis.processes.ltoa import LtoaParser
+from analysis.processes.ltoa import LtoaProcess
+
 
 MAX_NADC = 16
 ADC_SIZE = 2  # bytes per ADC value
@@ -14,8 +15,8 @@ class TestLtoaParser(unittest.TestCase):
             flt_expected_lines = f.read().split(' \n')[:-1]
 
         # Generate cumputed result
-        df = LtoaParser("tests/analysis/processes/ltoa/ERD16_075_01A.lst")
-        flt_computed_lines = df.parse() #.split('\n')
+        df = LtoaProcess("tests/analysis/processes/ltoa/ERD16_075_01A.lst")
+        flt_computed_lines = df.run() #.split('\n')
 
         # test equality
         self.assertEqual(len(flt_expected_lines), len(flt_computed_lines), "Nunber of lines did not match expected value.")
@@ -24,4 +25,4 @@ class TestLtoaParser(unittest.TestCase):
             self.assertEqual(flt_expected_lines[i], flt_computed_lines[i], f"Line {i} did not match the expected output.")
         
     def test_file_not_exist(self):
-        self.assertRaises(FileNotFoundError, lambda: LtoaParser("tests/analysis/processes/ltoa/this_file_does_not_exist.lst"))
+        self.assertRaises(FileNotFoundError, lambda: LtoaProcess("tests/analysis/processes/ltoa/this_file_does_not_exist.lst"))
