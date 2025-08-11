@@ -49,12 +49,13 @@ class TestTransform(unittest.TestCase):
             ext_expected_lines = f.read().split('\n')[:-1]
         
         # test equality
-        self.assertEqual(len(flt_data), len(extended_data), "Nunber of lines did not match expected value.")
         self.assertEqual(len(ext_expected_lines), len(extended_data), "Nunber of lines did not match expected value.")
 
         for i in range(len(ext_expected_lines)):
-            # exp = ext_expected_lines[i].split(' ')
-            # comp = [x for x in ext_computed_lines[i].split(' ') if len(x) > 0]
-            ToFch, ToFns, Ench, Iso_amu, Iso_ch = extended_data
-            tested_line = f"{ToFch:7d} {ToFns:12.3f} {Ench:7d} {Iso_amu:11.4f} {Iso_ch:7d}\n"
+            ToFch, ToFns, Ench, Iso_amu, Iso_ch = extended_data[i]
+            tested_line = f"{int(ToFch)} {ToFns:.3f} {int(Ench)} {Iso_amu:.4f} {int(Iso_ch)}"
             self.assertEqual(ext_expected_lines[i], tested_line, f"Line {i} did not match the expected output.")
+    
+    def test_load_extended_file(self):
+        # TODO
+        ...

@@ -1,5 +1,9 @@
 import numpy as np
 import os
+from utils.config import Config
+
+TOFCHMIN=Config.get_setting("tofchmin")
+TOFCHMAX=Config.get_setting("tofchmax")
 
 # public functions
 
@@ -9,8 +13,7 @@ def load_bparams_file(filename: str) -> np.array:
     filename: bparams (B0, B1, B2)
     """
 
-    tofchmin=1
-    tofchmax=8192
+    
 
     # check exists
     if not os.path.exists(filename):
@@ -23,14 +26,14 @@ def load_bparams_file(filename: str) -> np.array:
     
     # parse file
     
-    B0 = np.zeros(tofchmax+1)
-    B1 = np.zeros(tofchmax+1)
-    B2 = np.zeros(tofchmax+1)
+    B0 = np.zeros(TOFCHMAX+1)
+    B1 = np.zeros(TOFCHMAX+1)
+    B2 = np.zeros(TOFCHMAX+1)
     # B0[0] will be unused, equal to zero. (analog for B1[0], B2[0])
 
     try:
         with open(filename, 'r') as f:
-            for i in range(tofchmin - 1, tofchmax):  # 0-based index
+            for i in range(TOFCHMIN - 1, TOFCHMAX):  # 0-based index
                 line = f.readline()
                 if not line:
                     break
@@ -51,7 +54,7 @@ def load_tof_file(filename: str) -> tuple[float, float]:
     Opens a `Tof.in` file and returns the TOF calibration data.
     """
     if not os.path.exists(filename):
-        raise FileNotFoundError(f"Could not find tof file `{filename}`.")
+        raise FileNotFoundError(f"Could not find `tof` file `{filename}`.")
 
     if not filename.split('\\')[-1].split('/')[-1] == "Tof.in":
         raise NameError(f"Unexpected name of file `{filename}`. Please follow the convention and rename this file to `Tof.in`.")
@@ -64,25 +67,21 @@ def load_tof_file(filename: str) -> tuple[float, float]:
                     ns_ch, t_offs = map(float, line[myindex+1:].strip().split())
                     return (ns_ch, t_offs)
     except IOError:
-        raise RuntimeError("calibration not found in tof.in")
+        raise RuntimeError(f"calibration not found in `{filename}`")
 
 def extend_flt_data(flt_data: np.array, B0, B1, B2, ns_ch, t_offs):
     """
     Extends the flt data with aditional columns (t_k, E_k) -> (t_k, t, E_k, m, m_k).
     `k` denotes that this unit is expressed per channel.
     """
-    tofchmin=1
-    tofchmax=8192
+    TOFCHMIN=1
+    TOFCHMAX=8192
 
-    nrlines = 0
-    effnrlines = 0
 
-    output_data = np.zeros((len(flt_data), 5))
+    output_data = []
 
     try:
-        for index, line in enumerate(flt_data):
-            nrlines += 1
-            # parts = line.strip().split()
+        for line in flt_data:
             if len(line) < 2:
                 continue
             try:
@@ -91,7 +90,7 @@ def extend_flt_data(flt_data: np.array, B0, B1, B2, ns_ch, t_offs):
             except ValueError:
                 continue
 
-            if tofchmin <= ToFch <= tofchmax:
+            if TOFCHMIN <= ToFch <= TOFCHMAX:
                 idx = ToFch
                 ToFns = 1.0e9 * (t_offs + ns_ch * ToFch)
                 Iso_amu = B0[idx] + B1[idx]*Ench + B2[idx]*Ench*Ench
@@ -99,11 +98,9 @@ def extend_flt_data(flt_data: np.array, B0, B1, B2, ns_ch, t_offs):
                 # 80 is the maximum atomic number allowed,
                 # all data greather will be clipped
 
-                output_data[index] = [ToFch, ToFns, Ench, Iso_amu, Iso_ch]
-                # fout.write(f"{ToFch:7d} {ToFns:12.3f} {Ench:7d} {Iso_amu:11.4f} {Iso_ch:7d}\n")
-                effnrlines += 1
+                output_data.append([ToFch, ToFns, Ench, Iso_amu, Iso_ch])
 
-        return output_data
+        return np.asarray(output_data)
 
     except IOError:
         raise IOError("Error reading input file or writing output file.")
@@ -114,7 +111,7 @@ def load_flt_file(filename: str) -> np.array:
     """
     # check exists
     if not os.path.exists(filename):
-        raise FileNotFoundError(f"Bparam file {filename} not found.")
+        raise FileNotFoundError(f"`flt` file {filename} not found.")
     
     # check extension
     ext = filename.split('.')[-1]
@@ -127,3 +124,29 @@ def load_flt_file(filename: str) -> np.array:
     
     lines = content.split('\n')
     return np.asarray([[int(val) for val in line.split(' ')[:-1]] for line in lines[:-1]]) # ignore space at end of line and empty line at end of file
+
+
+def load_extended_file(filename: str) -> np.array:
+    """
+    TODO: docs
+    
+    [
+        [t_k, t, E_k, m, m_k],
+        ...
+    ]
+    """
+    # check exists
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"Extended file {filename} not found.")
+    
+    # check extension
+    ext = filename.split('.')[-1]
+    if ext != "ext":
+        raise NameError(f"`{filename}` has the wrong extension. Expected `ext`, got `{ext}`.")
+    
+    # Load file
+    with open(filename, 'r') as f:
+        content = f.read()
+    
+    lines = content.split('\n')
+    return np.asarray([[float(val) for val in line.split(' ')[:-1]] for line in lines[:-1]]) # ignore space at end of line and empty line at end of file
