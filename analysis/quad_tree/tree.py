@@ -45,7 +45,7 @@ Note that Quadrants are numbered from 1 to 4 in Roman numerals as follows:
 
 from utils.rectangle import r1_contains_r2, r1_intersects_r2, r1_contains_point
 
-MAX_DEPTH = 100
+MAX_DEPTH = 10
 # `MAX_DEPTH` defines the maximal depth of the quad tree.
 # This is necessary, as there are too many points to construct a
 # full quad tree (because of the max recursion depth of python).
@@ -61,7 +61,8 @@ class QuadTree:
         rect: tuple[float, float, float, float]
     ):
         # create initial structure
-        self.root = Quad(rect=rect, depth=0)
+        self.rect: tuple[float, float, float, float] = rect
+        self.root: Quad = Quad(rect=rect, depth=0)
 
     def containing_points(self, rect: tuple[float, float, float, float]):
         return self.root.containing_points(rect)
@@ -139,7 +140,6 @@ class Quad:
         if not r1_intersects_r2(rect, self.rect):
             # no intersection, so impossible to contain any points
             return 0
-        
         else:
             if r1_contains_r2(rect, self.rect):
                 # selected rectangle contains entire quad
@@ -223,6 +223,6 @@ class Quad:
                     success = True
                     break
             if not success:
-                raise ValueError("No quadrant found for point.")
+                raise ValueError(f"No quadrant found for point {point}, rect={self.rect}.")
         
         self.points = None

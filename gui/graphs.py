@@ -1,10 +1,7 @@
-# import matplotlib
-# matplotlib.rcParams['path.simplify_threshold'] = 1.0
-# matplotlib.rcParams['agg.path.chunksize'] = 10000
-# matplotlib.use("Agg")  # Avoid default GUI backend conflicts
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.colors as colors
+from matplotlib.cm import get_cmap
 import quads
 from .grid import create_grid
 
@@ -16,43 +13,40 @@ class Graph:
     filename: str
 
     def create_plot(self):
-        # bg_color = "#282c36"  # same as Tkinter DarkFrame background
+        if self.tree is None:
+            raise ValueError("`tree` cannot be `None`.")
 
-        # Create figure and set background
-        # fig, ax = plt.subplots(facecolor=bg_color)
-        # ax.set_facecolor(bg_color)
+        pixels = create_grid(self.tree)  # Assuming pixels is a 2D numpy array of counts or intensities
 
-        # Plot series with custom colors for contrast
-        # ax.scatter(self.x, self.y, marker='x', linewidths=.1, color="#7FDBFF", label="Series 1")
-        
-        # ax.set(
-        #     xlim=(0, 8), xticks=np.arange(1, 8),
-        #     ylim=(0, 8), yticks=np.arange(1, 8),
-        #     title=self.display_title,
-        #     # titlepad=15
-        # )
+        fig, ax = plt.subplots()
 
-        # Set text colors for dark background
-        # ax.tick_params(colors="white")
-        # ax.xaxis.label.set_color("white")
-        # ax.yaxis.label.set_color("white")
-        # ax.title.set_color("white")
-        # for spine in ax.spines.values():
-        #     spine.set_color("white")
+        cmap = get_cmap('gnuplot2') # color scheme
 
-        # ax.legend(facecolor=bg_color, edgecolor="white", labelcolor="white")
+        # Normalize pixels to color range, here assuming max value 128 from colorbar
+        norm = colors.SymLogNorm(linthresh=0.03, linscale=0.03,
+            vmin=1, vmax=1E4, base=10)
 
-        # return fig
+        # Show image with colormap and normalization
+        im = ax.pcolormesh(pixels, cmap=cmap, norm=norm, )
 
-        pixels = create_grid(self.tree)
+        # Add colorbar on the right
+        cbar = plt.colorbar(im, ax=ax)
+        cbar.set_label('Counts')
 
-        plt.pcolormesh(pixels)
+        ax.set_title(self.display_title)
+        ax.set_xlabel('Time of flight (ns)')
+        ax.set_ylabel('Energy channel')
+
+        # You can customize ticks here if needed, and axis limits
+
+        return fig
 
     def render_frame(self, parent_frame):
-        fig = self.create_plot()
-        canvas = FigureCanvasTkAgg(fig, master=parent_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True)
+        # fig = self.create_plot()
+        # canvas = FigureCanvasTkAgg(fig, master=parent_frame)
+        # canvas.draw()
+        # canvas.get_tk_widget().pack(fill="both", expand=True)
+        ...
 
     def show(self):
         self.create_plot()

@@ -35,39 +35,42 @@ class TkinterUi:
     MIN_HEIGHT = 600
 
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("pyPrepERD")
-        self.root.geometry(f"{TkinterUi.MIN_WIDTH}x{TkinterUi.MIN_HEIGHT}")
-        self.root.minsize(TkinterUi.MIN_WIDTH, TkinterUi.MIN_HEIGHT)
-        self.root.configure(bg="#282c36")
+        # self.root = tk.Tk()
+        # self.root.title("pyPrepERD")
+        # self.root.geometry(f"{TkinterUi.MIN_WIDTH}x{TkinterUi.MIN_HEIGHT}")
+        # self.root.minsize(TkinterUi.MIN_WIDTH, TkinterUi.MIN_HEIGHT)
+        # self.root.configure(bg="#282c36")
+        ...
 
-        self.theme = DarkTheme(self.root)
+        # self.theme = DarkTheme(self.root)
 
     def initialize(self):
-        main_frame = ttk.Frame(self.root, padding="10",
-                               style='DarkFrame.TFrame')
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # main_frame = ttk.Frame(self.root, padding="10",
+        #                        style='DarkFrame.TFrame')
+        # main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        ttk.Label(main_frame, text="📊 Graph Display",
-                  style='Heading.TLabel').pack(anchor=tk.NW, pady=(0, 10))
+        # ttk.Label(main_frame, text="📊 Graph Display",
+        #           style='Heading.TLabel').pack(anchor=tk.NW, pady=(0, 10))
 
-        # Show project browser
-        project_browser_frame = ttk.Frame(
-            main_frame, padding="10", style='DarkFrame.TFrame')
-        project_browser_frame.pack(fill=tk.BOTH, expand=True)
+        # # Show project browser
+        # project_browser_frame = ttk.Frame(
+        #     main_frame, padding="10", style='DarkFrame.TFrame')
+        # project_browser_frame.pack(fill=tk.BOTH, expand=True)
 
-        browser = ProjectBrowser()
-        browser.render_frame(project_browser_frame)
+        # browser = ProjectBrowser()
+        # browser.render_frame(project_browser_frame)
 
-        # Graph Frame
-        graph_frame = ttk.Frame(main_frame, padding="10", style='DarkFrame.TFrame')
-        graph_frame.pack(fill=tk.BOTH, expand=True)
+        # # Graph Frame
+        # graph_frame = ttk.Frame(main_frame, padding="10", style='DarkFrame.TFrame')
+        # graph_frame.pack(fill=tk.BOTH, expand=True)
 
         # Create and render graph
         extended_data = analysis.load_extended_file("tests/analysis/transform/ERD25_090_02A.ext")
         quad_tree = analysis.extended_to_quad_tree(extended_data)
         graph = Graph(quad_tree, "My Dark Graph", "graph.png")
-        graph.render_frame(graph_frame)
+        # graph.render_frame(graph_frame)
+        graph.show()
 
     def run(self):
-        self.root.mainloop()
+        ...
+    #     self.root.mainloop()

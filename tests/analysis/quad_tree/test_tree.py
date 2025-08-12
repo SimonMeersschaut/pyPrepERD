@@ -34,7 +34,7 @@ class TestQuadTree(unittest.TestCase):
 
     def test_insert_and_count_single_point(self):
         qt = QuadTree(ROOT_RECT)
-        qt.insert(*POINT_INSIDE)
+        qt.insert(POINT_INSIDE)
         self.assertEqual(qt.root.count, 1)
         self.assertEqual(qt.containing_points(ROOT_RECT), 1)
         self.assertEqual(qt.containing_points((0, 0, 5, 5)), 0)  # rectangle that doesn't contain point
@@ -50,7 +50,7 @@ class TestQuadTree(unittest.TestCase):
         ]
         for i, p in enumerate(points):
             self.assertEqual(qt.root.count, i)
-            qt.insert(*p)
+            qt.insert(p)
             self.assertEqual(qt.root.count, i+1)
         
         root = qt.root
@@ -67,22 +67,22 @@ class TestQuadTree(unittest.TestCase):
 
     def test_containing_points_with_full_containment(self):
         qt = QuadTree(ROOT_RECT)
-        qt.insert(10, 10)
-        qt.insert(20, 20)
+        qt.insert((10, 10))
+        qt.insert((20, 20))
         # Query a rectangle fully containing root rect
         count = qt.containing_points(ROOT_RECT)
         self.assertEqual(count, 2)
 
     def test_containing_points_no_intersection(self):
         qt = QuadTree(ROOT_RECT)
-        qt.insert(10, 10)
+        qt.insert((10, 10))
         count = qt.containing_points((200, 200, 10, 10))  # outside root rect, no intersection
         self.assertEqual(count, 0)
 
     def test_containing_points_partial_intersection(self):
         qt = QuadTree(ROOT_RECT)
-        qt.insert(10, 10)
-        qt.insert(90, 90)
+        qt.insert((10, 10))
+        qt.insert((90, 90))
         count = qt.containing_points((5, 5, 20, 20))
         self.assertEqual(count, 1)  # only point (10,10) inside query rect
 
@@ -95,18 +95,15 @@ class TestQuadTree(unittest.TestCase):
         self.assertEqual(len(q.points), 2)
         self.assertEqual(q.count, 2)
 
-    # def test_split_in_four_distributes_points(self):
-    #     q = Quad(ROOT_RECT, depth=0)
-    #     # Add multiple points that will cause splitting on insert
-    #     q.points = [(10, 10), (75, 10), (10, 75), (75, 75)]
-    #     q.count = 4
-    #     q._split_in_four()
-    #     self.assertIsNone(q.points)
-    #     self.assertEqual(len(q.children), 4)
-    #     # Each child should have count 1 and 1 point inside it
-    #     for child in q.children:
-    #         self.assertEqual(child.count, 1)
-    #         self.assertEqual(len(child.points), 1)
-
-# if __name__ == "__main__":
-#     unittest.main()
+    def test_split_in_four_distributes_points(self):
+        q = Quad(ROOT_RECT, depth=0)
+        # Add multiple points that will cause splitting on insert
+        q.points = [(10, 10), (75, 10), (10, 75), (75, 75)]
+        q.count = 4
+        q._split_in_four()
+        self.assertIsNone(q.points)
+        self.assertEqual(len(q.children), 4)
+        # Each child should have count 1 and 1 point inside it
+        for child in q.children:
+            self.assertEqual(child.count, 1)
+            self.assertEqual(len(child.points), 1)

@@ -53,7 +53,7 @@ def r1_intersects_r2(rect1: tuple, rect2: tuple) -> bool:
     return True
 
 
-def r1_contains_point(rect1: tuple, point: tuple[float, float]) -> bool:
+def r1_contains_point(rect1: tuple[float, float, float, float], point: tuple[float, float]) -> bool:
     """
     Returns whether `rect1` contains the given `point` (x, y).
     Points exactly on the rectangle's edges are considered inside.
