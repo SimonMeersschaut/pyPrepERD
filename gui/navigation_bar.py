@@ -109,7 +109,10 @@ class CustomToolBar(NavigationToolbar2Tk):
     
 
     def draw_polygon(self, *args):
-        self.mode = _MoreModes.POLYGON
+        if self.mode == _MoreModes.POLYGON:
+            self.mode = _MoreModes.NONE
+        else:
+            self.mode = _MoreModes.POLYGON
         self._update_buttons_checked()
     
     def _update_buttons_checked(self):
@@ -117,6 +120,6 @@ class CustomToolBar(NavigationToolbar2Tk):
         for text, mode in [('Zoom', _MoreModes.ZOOM), ('Pan', _MoreModes.PAN), (_MoreModes.POLYGON, "Polygon")]:
             if text in self._buttons:
                 if self.mode == mode:
-                    self._buttons[text].select()  # NOT .invoke()
+                    self._buttons[text].select()
                 else:
                     self._buttons[text].deselect()

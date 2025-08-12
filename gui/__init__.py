@@ -22,7 +22,7 @@ if sys.platform.startswith("win"):
 class WhiteTheme:
     def __init__(self, root):
         style = ttk.Style(root)
-        style.theme_use("clam")
+        # style.theme_use("clam")
         
         # Frame backgrounds
         style.configure('WhiteFrame.TFrame', background="#E0E0E0")
@@ -44,12 +44,15 @@ class TkinterUi:
     MIN_WIDTH = 800
     MIN_HEIGHT = 600
 
+    WIDTH = 900
+    HEIGHT = 800
+
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("pyPrepERD")
-        self.root.geometry(f"{TkinterUi.MIN_WIDTH}x{TkinterUi.MIN_HEIGHT}")
+        self.root.geometry(f"{TkinterUi.WIDTH-1}x{TkinterUi.HEIGHT-1}")
         self.root.minsize(TkinterUi.MIN_WIDTH, TkinterUi.MIN_HEIGHT)
-        self.root.configure(bg="#282c36")
+        # self.root.configure(bg="#282c36")
         self.theme = WhiteTheme(self.root)
 
         # Handle close button click
@@ -86,6 +89,15 @@ class TkinterUi:
         title = FILENAME.split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"
         plot = Plot(pixels, title)
         PlotFrame(plot).render_frame(graph_frame)
+
+        self.root.after(500, self._force_resize) # needed for plot to render correctly
+
+    def _force_resize(self, delay_restore_ms: int = 50):
+        """
+        Tiny resize jiggle: grow by 1px then restore after `delay_restore_ms`. FIXME is niet meer correct
+        This forces the WM/backend to recompute layout so embedded Matplotlib lays out correctly.
+        """
+        self.root.geometry(f"{TkinterUi.WIDTH}x{TkinterUi.HEIGHT}")
 
     def signal_handler(self, sig, frame):
         print("Ctrl+C pressed, closing...")

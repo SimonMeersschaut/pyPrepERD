@@ -12,9 +12,11 @@ def create_grid(extended_data, x_index:int, y_index:int):
     x_index, y_index define which indices are selected from the extended data frame. (i.e. which columns)
     """
 
-    min_x = np.min(extended_data[:,x_index]) - 1
+    # TODO: zet x=(x: 50-...) en y=(y: 0-...)
+
+    # min_x = np.min(extended_data[:,x_index]) - 1
     max_x = np.max(extended_data[:,x_index]) + 1
-    min_y = np.min(extended_data[:,y_index]) - 1
+    # min_y = np.min(extended_data[:,y_index]) - 1
     max_y = np.max(extended_data[:,y_index]) + 1
     
     #
@@ -23,11 +25,6 @@ def create_grid(extended_data, x_index:int, y_index:int):
         math.ceil(max_x),
         math.ceil(max_y)
     )
-
-    # GRID_SIZE = (
-    #     100, # x
-    #     50, # y
-    # )
 
     pixels = np.zeros((GRID_SIZE[1], GRID_SIZE[0]))
 

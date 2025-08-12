@@ -16,7 +16,7 @@ class PlotFrame:
         self.canvas.draw()
 
         # Bind mouse event to canvas widget
-        self.canvas.get_tk_widget().bind("<ButtonPress-1>", self.tk_callback)
+        self.canvas.get_tk_widget().bind("<ButtonPress-1>", self.tk_callback, add=True) # dont override existing bindings
 
         # Create matplotlib toolbar
         self.mpl_toolbar = CustomToolBar(self.canvas, parent_frame, pack_toolbar=False)
