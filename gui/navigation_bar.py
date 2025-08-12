@@ -1,9 +1,30 @@
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 from matplotlib.backend_bases import NavigationToolbar2
+from enum import Enum
 import tkinter as tk
 import tkinter.font
 from matplotlib import cbook
 from matplotlib.backends._backend_tk import add_tooltip
+
+class _MoreModes(str, Enum):
+    """Extension of `_Mode` under `matplotlib.backend_bases`."""
+    NONE = ""
+    PAN = "pan/zoom"
+    ZOOM = "zoom rect"
+    POLYGON = "draw polygon"
+
+    # TOGGLEABLES =
+
+    def __str__(self):
+        return self.value
+
+    @property
+    def _navigate_mode(self):
+        return self.name if self is not _MoreModes.NONE else None
+
+ORIGINAL = 0
+CUSTOM = 1
+
 
 class CustomToolBar(NavigationToolbar2Tk):
     def __init__(self, canvas, window=None, *, pack_toolbar=True):
@@ -22,20 +43,22 @@ class CustomToolBar(NavigationToolbar2Tk):
             ``pack_toolbar=False``.
         """
 
-        
+        # original_or_custom, text, tooltip_text, image_file, callback
         toolitems = (
-            ('Home', 'Reset original view', 'home', 'home'),
-            ('Back', 'Back to previous view', 'back', 'back'),
-            ('Forward', 'Forward to next view', 'forward', 'forward'),
-            (None, None, None, None),
-            ('Pan',
+            (ORIGINAL, 'Home', 'Reset original view', 'home', 'home'),
+            (ORIGINAL, 'Back', 'Back to previous view', 'back', 'back'),
+            (ORIGINAL, 'Forward', 'Forward to next view', 'forward', 'forward'),
+            # (ORIGINAL, None, None, None, None),
+            (ORIGINAL, 'Pan',
             'Left button pans, Right button zooms\n'
             'x/y fixes axis, CTRL fixes aspect',
             'move', 'pan'),
-            ('Zoom', 'Zoom to rectangle\nx/y fixes axis', 'zoom_to_rect', 'zoom'),
-            ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
-            (None, None, None, None),
-            ('Save', 'Save the figure', 'filesave', 'save_figure'),
+            (ORIGINAL, 'Zoom', 'Zoom to rectangle\nx/y fixes axis', 'zoom_to_rect', 'zoom'),
+            # (ORIGINAL, 'Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
+            (ORIGINAL, None, None, None, None),
+            (ORIGINAL, 'Save', 'Save the figure', 'filesave', 'save_figure'),
+            (ORIGINAL, None, None, None, None),
+            (CUSTOM, 'Polygon', 'Draw a polygon', 'polygon', 'draw_polygon'),
         )
 
         if window is None:
@@ -44,15 +67,21 @@ class CustomToolBar(NavigationToolbar2Tk):
                           width=int(canvas.figure.bbox.width), height=50)
 
         self._buttons = {}
-        for text, tooltip_text, image_file, callback in self.toolitems:
+        for original_or_custom, text, tooltip_text, image_file, callback in toolitems:
+            # get image path
+            if original_or_custom == ORIGINAL:
+                im_path = str(cbook._get_data_path(f"images/{image_file}.png"))
+            else:
+                im_path = f"C:\\Users\\meerss01\\Desktop\\pyPrepERD\\data\\{image_file}.png"
+
             if text is None:
                 # Add a spacer; return value is unused.
                 self._Spacer()
             else:
                 self._buttons[text] = button = self._Button(
                     text,
-                    str(cbook._get_data_path(f"images/{image_file}.png")),
-                    toggle=callback in ["zoom", "pan"],
+                    im_path,
+                    toggle=callback in ["zoom", "pan", "draw_polygon"],
                     command=getattr(self, callback),
                 )
                 if tooltip_text is not None:
@@ -77,3 +106,17 @@ class CustomToolBar(NavigationToolbar2Tk):
         NavigationToolbar2.__init__(self, canvas)
         if pack_toolbar:
             self.pack(side=tk.BOTTOM, fill=tk.X)
+    
+
+    def draw_polygon(self, *args):
+        self.mode = _MoreModes.POLYGON
+        self._update_buttons_checked()
+    
+    def _update_buttons_checked(self):
+        # sync button checkstates to match active mode
+        for text, mode in [('Zoom', _MoreModes.ZOOM), ('Pan', _MoreModes.PAN), (_MoreModes.POLYGON, "Polygon")]:
+            if text in self._buttons:
+                if self.mode == mode:
+                    self._buttons[text].select()  # NOT .invoke()
+                else:
+                    self._buttons[text].deselect()

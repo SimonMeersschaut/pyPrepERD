@@ -79,10 +79,12 @@ class TkinterUi:
         graph_frame.pack(fill=tk.BOTH, expand=True)
 
         # Create and render graph
-        extended_data = analysis.load_extended_file("tests/analysis/transform/ERD25_090_02A.ext")
+        FILENAME = "tests/analysis/transform/ERD25_090_02A.ext"
+        extended_data = analysis.load_extended_file(FILENAME)
 
         pixels = create_grid(extended_data, x_index=1, y_index=2)
-        plot = Plot(pixels, "Project Graph")
+        title = FILENAME.split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"
+        plot = Plot(pixels, title)
         PlotFrame(plot).render_frame(graph_frame)
 
     def signal_handler(self, sig, frame):
