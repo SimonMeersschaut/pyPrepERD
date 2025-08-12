@@ -5,8 +5,8 @@ from .plot_frame import PlotFrame
 from utils.plot import Plot
 from .project_browser import ProjectBrowser
 from utils.grid import create_grid
-import numpy as np
 import sys
+import signal
 
 if sys.platform.startswith("win"):
     try:
@@ -52,6 +52,12 @@ class TkinterUi:
         self.root.configure(bg="#282c36")
         self.theme = WhiteTheme(self.root)
 
+        # Handle close button click
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
+        # Optional: Handle SIGINT to allow Ctrl+C to close the window
+        signal.signal(signal.SIGINT, self.signal_handler)
+
     def initialize(self):
         main_frame = ttk.Frame(self.root, padding="10",
                                style='DarkFrame.TFrame')
@@ -75,9 +81,18 @@ class TkinterUi:
         # Create and render graph
         extended_data = analysis.load_extended_file("tests/analysis/transform/ERD25_090_02A.ext")
 
-        pixels = create_grid(extended_data)
+        pixels = create_grid(extended_data, x_index=1, y_index=2)
         plot = Plot(pixels, "Project Graph")
         PlotFrame(plot).render_frame(graph_frame)
+
+    def signal_handler(self, sig, frame):
+        print("Ctrl+C pressed, closing...")
+        self.root.destroy()
+        sys.exit(0)
+
+    def on_close(self):
+        self.root.destroy()
+        sys.exit(0)  # force the program to exit
 
     def run(self):
         self.root.mainloop()

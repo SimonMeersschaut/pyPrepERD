@@ -9,6 +9,7 @@ def index_to_rect(x_index, y_index):
 def create_grid(extended_data, x_index:int, y_index:int):
     """
     TODO: docs
+    x_index, y_index define which indices are selected from the extended data frame. (i.e. which columns)
     """
 
     min_x = np.min(extended_data[:,x_index]) - 1
