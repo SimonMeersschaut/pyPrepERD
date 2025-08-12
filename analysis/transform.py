@@ -52,6 +52,7 @@ def load_bparams_file(filename: str) -> np.array:
 def load_tof_file(filename: str) -> tuple[float, float]:
     """
     Opens a `Tof.in` file and returns the TOF calibration data.
+    Returns (ns_ch, t_offs)
     """
     if not os.path.exists(filename):
         raise FileNotFoundError(f"Could not find `tof` file `{filename}`.")
@@ -108,6 +109,7 @@ def extend_flt_data(flt_data: np.array, B0, B1, B2, ns_ch, t_offs):
 
 def load_flt_file(filename: str) -> np.array:
     """
+    Loads an flt file and returns it columns.
     """
     # check exists
     if not os.path.exists(filename):

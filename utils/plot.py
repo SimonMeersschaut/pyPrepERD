@@ -4,14 +4,12 @@ import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.colors import ListedColormap
 import matplotlib.ticker as ticker
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
 @dataclass
-class Graph:
+class Plot:
     pixels: any # TODO
     display_title: str
-    filename: str
 
     def create_plot(self):
         if self.pixels is None:
@@ -64,13 +62,6 @@ class Graph:
 
         return fig
 
-
-    def render_frame(self, parent_frame):
+    def save(self, filename: str):
         fig = self.create_plot()
-        canvas = FigureCanvasTkAgg(fig, master=parent_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True)
-
-    def show(self):
-        self.create_plot()
-        plt.show()
+        fig.savefig(filename)

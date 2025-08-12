@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
 import analysis
-from .graphs import Graph
+from .plot_frame import PlotFrame
+from utils.plot import Plot
 from .project_browser import ProjectBrowser
-from .grid import create_grid
+from utils.grid import create_grid
 import numpy as np
 import sys
 
@@ -17,18 +18,6 @@ if sys.platform.startswith("win"):
     except Exception as e:
         print(f"Could not set DPI awareness: {e}")
 
-
-# class DarkTheme:
-#     def __init__(self, root):
-#         style = ttk.Style(root)
-#         style.theme_use("clam")
-#         style.configure('DarkFrame.TFrame', background="#282c36")
-#         style.configure('Heading.TLabel', background="#282c36",
-#                         foreground="white", font=("Arial", 14, "bold"))
-#         style.configure('TLabel', background="#282c36", foreground="white")
-#         style.configure('TButton', background="#3c3f41",
-#                         foreground="white", borderwidth=0)
-#         style.map('TButton', background=[('active', '#505357')])
 
 class WhiteTheme:
     def __init__(self, root):
@@ -87,9 +76,8 @@ class TkinterUi:
         extended_data = analysis.load_extended_file("tests/analysis/transform/ERD25_090_02A.ext")
 
         pixels = create_grid(extended_data)
-        graph = Graph(pixels, "My Dark Graph", "graph.png")
-        graph.render_frame(graph_frame)
-        # graph.show()
+        plot = Plot(pixels, "Project Graph")
+        PlotFrame(plot).render_frame(graph_frame)
 
     def run(self):
         self.root.mainloop()
