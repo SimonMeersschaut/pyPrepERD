@@ -4,6 +4,7 @@ import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 import matplotlib.ticker as ticker
 import numpy as np
+from matplotlib.lines import Line2D
 
 @dataclass
 class Plot:
@@ -13,6 +14,7 @@ class Plot:
     fig: plt.Figure = field(init=False, default=None)
     ax: plt.Axes = field(init=False, default=None)
     polygon_points: list[tuple[float, float]] = field(default_factory=list, init=False)
+    polygon_line: Line2D = field(init=False, default=None)
 
     def create_plot(self):
         if self.pixels is None:
@@ -56,10 +58,15 @@ class Plot:
         self.ax.set_xlabel('Time of flight (ns)')
         self.ax.set_ylabel('Energy channel')
 
-        # Plot existing polygon points if any (for redraw)
+        # Plot existing polygon points and line if any
         if self.polygon_points:
             xs, ys = zip(*self.polygon_points)
             self.ax.scatter(xs, ys, color='red', marker='o')
+            if len(self.polygon_points) > 1:
+                # Close polygon by adding first point to end
+                xs_closed = list(xs) + [xs[0]]
+                ys_closed = list(ys) + [ys[0]]
+                self.polygon_line, = self.ax.plot(xs_closed, ys_closed, 'r-')
 
         return self.fig
 
@@ -67,13 +74,27 @@ class Plot:
         if self.ax is None:
             raise RuntimeError("Plot must be created first by calling `create_plot()`.")
 
-        # Store the point
         self.polygon_points.append(point)
 
-        # Plot the point on the current axis
+        # Plot the new point
         self.ax.scatter(point[0], point[1], color='red', marker='o')
 
-        # Redraw canvas to update the figure immediately
+        # Update or create the polygon line
+        if self.polygon_line is None:
+            # First time creating the line
+            if len(self.polygon_points) > 1:
+                xs, ys = zip(*self.polygon_points)
+                # Close polygon by adding first point to end
+                xs_closed = list(xs) + [xs[0]]
+                ys_closed = list(ys) + [ys[0]]
+                self.polygon_line, = self.ax.plot(xs_closed, ys_closed, 'r-')
+        else:
+            # Update existing line data
+            xs, ys = zip(*self.polygon_points)
+            xs_closed = list(xs) + [xs[0]]
+            ys_closed = list(ys) + [ys[0]]
+            self.polygon_line.set_data(xs_closed, ys_closed)
+
         self.fig.canvas.draw_idle()
 
     def save(self, filename: str):
