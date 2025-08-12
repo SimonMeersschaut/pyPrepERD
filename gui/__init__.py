@@ -65,7 +65,8 @@ class TkinterUi:
 
         # Create and render graph
         extended_data = analysis.load_extended_file("tests/analysis/transform/ERD25_090_02A.ext")
-        graph = Graph(extended_data[:,2][::20], extended_data[:,0][::20], "My Dark Graph", "graph.png")
+        quad_tree = analysis.extended_to_quad_tree(extended_data)
+        graph = Graph(quad_tree, "My Dark Graph", "graph.png")
         graph.render_frame(graph_frame)
 
     def run(self):
