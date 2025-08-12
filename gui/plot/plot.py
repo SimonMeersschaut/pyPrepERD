@@ -4,7 +4,7 @@ import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 import matplotlib.ticker as ticker
 import numpy as np
-from .polygon import is_point_in_polygon
+from utils.polygon import is_point_in_polygon
 
 @dataclass
 class Plot:
@@ -77,21 +77,34 @@ class Plot:
 
     def add_polygon_point(self, point: tuple[float, float]):
         self.polygon_points.append(point)
-
+        self._update_polygon()
+    
+    def _update_polygon(self):
         # Restore background (fast)
         self.fig.canvas.restore_region(self.background)
 
         # Update scatter points
-        self.scatter.set_offsets(self.polygon_points)
+        if not self.polygon_points:
+            # Pass an empty 2D array with shape (0, 2)
+            self.scatter.set_offsets(np.empty((0, 2)))
+            # Clear lines when no points
+            self.polygon_line.set_data([], [])
+            self.closing_line.set_data([], [])
+        else:
+            self.scatter.set_offsets(self.polygon_points)
 
-        if len(self.polygon_points) > 1:
-            xs, ys = zip(*self.polygon_points)
-            self.polygon_line.set_data(xs, ys)
+            if len(self.polygon_points) > 1:
+                xs, ys = zip(*self.polygon_points)
+                self.polygon_line.set_data(xs, ys)
 
-            self.closing_line.set_data(
-                [self.polygon_points[-1][0], self.polygon_points[0][0]],
-                [self.polygon_points[-1][1], self.polygon_points[0][1]]
-            )
+                self.closing_line.set_data(
+                    [self.polygon_points[-1][0], self.polygon_points[0][0]],
+                    [self.polygon_points[-1][1], self.polygon_points[0][1]]
+                )
+            else:
+                # Only one point, no lines to draw
+                self.polygon_line.set_data([], [])
+                self.closing_line.set_data([], [])
 
         # Draw updated artists
         self.ax.draw_artist(self.scatter)
@@ -103,6 +116,7 @@ class Plot:
         self.fig.canvas.flush_events()
 
         self.calculate_containing_points()
+
     
     def calculate_containing_points(self):
         if len(self.polygon_points) < 3:
@@ -115,3 +129,7 @@ class Plot:
     def _update_background(self, event=None):
         if self.fig and self.ax:
             self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
+    
+    def clear_polygon_points(self):
+        self.polygon_points = []
+        self._update_polygon()

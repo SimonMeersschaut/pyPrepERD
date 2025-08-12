@@ -130,12 +130,13 @@ def load_flt_file(filename: str) -> np.array:
 
 def load_extended_file(filename: str) -> np.array:
     """
-    TODO: docs
+    Loads an .ext file and returns its columns as a numpy array.
     
     [
         [t_k, t, E_k, m, m_k],
         ...
     ]
+    `k` denotes that this unit is expressed per channel.
     """
     # check exists
     if not os.path.exists(filename):

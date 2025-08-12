@@ -27,7 +27,7 @@ CUSTOM = 1
 
 
 class CustomToolBar(NavigationToolbar2Tk):
-    def __init__(self, canvas, window=None, *, pack_toolbar=True):
+    def __init__(self, canvas, plot, window=None, *, pack_toolbar=True):
 
         """
         Parameters
@@ -42,6 +42,8 @@ class CustomToolBar(NavigationToolbar2Tk):
             If you want to use the toolbar with a different layout manager, use
             ``pack_toolbar=False``.
         """
+
+        self.plot = plot
 
         # original_or_custom, text, tooltip_text, image_file, callback
         toolitems = (
@@ -111,6 +113,8 @@ class CustomToolBar(NavigationToolbar2Tk):
     def draw_polygon(self, *args):
         if self.mode == _MoreModes.POLYGON:
             self.mode = _MoreModes.NONE
+            # remove polygon points
+            self.plot.clear_polygon_points()
         else:
             self.mode = _MoreModes.POLYGON
         self._update_buttons_checked()

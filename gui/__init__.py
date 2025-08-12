@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 import analysis
-from .plot_frame import PlotFrame
-from utils.plot import Plot
+from .plot.plot_frame import PlotFrame
+from gui.plot.plot import Plot
 from .project_browser import ProjectBrowser
 from utils.grid import create_grid
 import sys
