@@ -24,21 +24,18 @@ class PlotFrame:
 
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
 
-    # def callback(self, event):
-    #     # matplotlib callback - should work on clicks inside axes
-    #     # print(f"[mpl_connect] Mouse pressed at pixel coords: ({event.x}, {event.y})")
-    #     if event.xdata is not None and event.ydata is not None:
-    #         print(f"[mpl_connect] Mouse pressed at data coords: ({event.xdata:.3f}, {event.ydata:.3f})")
-    #     else:
-    #         print("[mpl_connect] Click outside axes")
 
     def tk_callback(self, event):
-        # Tkinter callback - fallback for clicks anywhere on the canvas widget
-        # print(f"[tk_bind] Mouse pressed at pixel coords: ({event.x}, {event.y})")
-
-        # Convert Tkinter pixel coords to matplotlib data coords manually
         if self.fig:
             ax = self.fig.axes[0]  # Assume one axes
-            inv = ax.transData
-            xdata, ydata = inv.transform((event.x, event.y))
+            inv = ax.transData.inverted()
+            
+            canvas_widget = self.canvas.get_tk_widget()
+            height = canvas_widget.winfo_height()
+            
+            flipped_y = height - event.y  # Flip Y coordinate
+            
+            xdata, ydata = inv.transform((event.x, flipped_y))
             print(f"[tk_bind] Mouse pressed at data coords: ({round(xdata)}, {round(ydata)})")
+
+            self.plot.add_polygon_point((round(xdata), round(ydata)))

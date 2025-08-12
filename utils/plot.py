@@ -1,21 +1,24 @@
 import matplotlib.pyplot as plt
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import matplotlib.colors as colors
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 import matplotlib.ticker as ticker
 import numpy as np
 
 @dataclass
 class Plot:
-    pixels: any # TODO
+    pixels: any  # TODO: specify type if possible
     display_title: str
+    
+    fig: plt.Figure = field(init=False, default=None)
+    ax: plt.Axes = field(init=False, default=None)
+    polygon_points: list[tuple[float, float]] = field(default_factory=list, init=False)
 
     def create_plot(self):
         if self.pixels is None:
             raise ValueError("`pixels` cannot be `None`.")
 
-        fig, ax = plt.subplots()
+        self.fig, self.ax = plt.subplots()
 
         # Anchor colors from your original scale
         anchor_values = np.array([1, 2, 4, 8, 16, 32, 64, 128])
@@ -30,38 +33,50 @@ class Plot:
             "#0000ff"   # blue
         ]
 
-        # Normalize anchor values to [0,1] for colormap definition
         norm_anchor_vals = (np.log2(anchor_values) - np.log2(anchor_values[0])) / \
-                        (np.log2(anchor_values[-1]) - np.log2(anchor_values[0]))
+                           (np.log2(anchor_values[-1]) - np.log2(anchor_values[0]))
 
-        # Build continuous colormap for values >= 1
         cmap = LinearSegmentedColormap.from_list(
             "custom_cmap", list(zip(norm_anchor_vals, anchor_colors))
         )
 
-        # SymLogNorm for values >= 1
         norm = colors.SymLogNorm(linthresh=0.03, linscale=0.03, vmin=1, vmax=128, base=2)
 
-        # -------- LAYER 1: Plot white background where values == 0 --------
-        white_pixels = np.where(self.pixels == 0, 1, np.nan)  # 1 just as dummy, NaN elsewhere
-        ax.pcolormesh(white_pixels, cmap=ListedColormap(["white"]), vmin=0, vmax=1)
+        white_pixels = np.where(self.pixels == 0, 1, np.nan)
+        self.ax.pcolormesh(white_pixels, cmap=ListedColormap(["white"]), vmin=0, vmax=1)
 
-        # -------- LAYER 2: Plot normal log-scaled data where values >= 1 --------
         masked_pixels = np.where(self.pixels >= 1, self.pixels, np.nan)
-        im = ax.pcolormesh(masked_pixels, cmap=cmap, norm=norm)
+        im = self.ax.pcolormesh(masked_pixels, cmap=cmap, norm=norm)
 
-        # Colorbar
-        cbar = fig.colorbar(im, ax=ax)
+        cbar = self.fig.colorbar(im, ax=self.ax)
         cbar.set_label('Counts')
         cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
 
-        ax.set_title(self.display_title)
-        # ax.set(xlim=(0, 300), ylim=(0, 8000))
-        ax.set_xlabel('Time of flight (ns)')
-        ax.set_ylabel('Energy channel')
+        self.ax.set_title(self.display_title)
+        self.ax.set_xlabel('Time of flight (ns)')
+        self.ax.set_ylabel('Energy channel')
 
-        return fig
+        # Plot existing polygon points if any (for redraw)
+        if self.polygon_points:
+            xs, ys = zip(*self.polygon_points)
+            self.ax.scatter(xs, ys, color='red', marker='o')
+
+        return self.fig
+
+    def add_polygon_point(self, point: tuple[float, float]):
+        if self.ax is None:
+            raise RuntimeError("Plot must be created first by calling `create_plot()`.")
+
+        # Store the point
+        self.polygon_points.append(point)
+
+        # Plot the point on the current axis
+        self.ax.scatter(point[0], point[1], color='red', marker='o')
+
+        # Redraw canvas to update the figure immediately
+        self.fig.canvas.draw_idle()
 
     def save(self, filename: str):
-        fig = self.create_plot()
-        fig.savefig(filename)
+        if self.fig is None:
+            self.create_plot()
+        self.fig.savefig(filename)
