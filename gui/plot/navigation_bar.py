@@ -3,6 +3,7 @@ from matplotlib.backend_bases import NavigationToolbar2
 from enum import Enum
 import tkinter as tk
 import tkinter.font
+import numpy as np
 from matplotlib import cbook
 from matplotlib.backends._backend_tk import add_tooltip
 import analysis
@@ -151,7 +152,12 @@ class CustomToolBar(NavigationToolbar2Tk):
             # typevariable=filetype_variable
         )
 
+        # select T_k and E_k from the extended data
         selected_extended_data = self.plot.get_selected_points()
+        # TODO: dump dit in de juiste file, met juiste extentie
+        # add a linenumber 
+        output = selected_extended_data + np.linspace(1, len(selected_extended_data))
+        analysis.dump_data_frame()
         analysis.dump_extended_file(selected_extended_data, fname)
     
     def _update_buttons_checked(self):

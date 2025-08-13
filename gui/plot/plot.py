@@ -4,19 +4,7 @@ import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 import matplotlib.ticker as ticker
 import numpy as np
-# A utility function, 'points_in_polygon', would be in a separate file.
-# from utils.polygon import points_in_polygon
-
-# This is a placeholder for the actual 'points_in_polygon' function
-# to make the provided code runnable.
-def points_in_polygon(data, polygon_vertices):
-    """
-    A placeholder function to simulate checking which points from 'data'
-    fall inside the 'polygon_vertices'.
-    """
-    print("Checking for points inside the polygon...")
-    return []
-
+from utils.polygon import points_in_polygon
 
 @dataclass
 class Plot:
@@ -146,7 +134,18 @@ class Plot:
         if len(self.polygon_points) < 3:
             return []
         
-        return points_in_polygon(self.extended_data, self.polygon_points)
+        # Add a column with the line number to extended data
+        # Create column with row indices (line numbers)
+        line_numbers = np.arange(len(self.extended_data)).reshape(-1, 1)
+
+        # Add it as the last column
+        result = np.hstack((self.extended_data, line_numbers))
+        
+        # Select points based on polygon
+        selected = points_in_polygon(result, self.polygon_points, x_index=1, y_index=2)
+        
+        # return only columns 1, 2 and 5
+        return selected[:, [1, 2, 5]]
     
     def save(self, filename: str):
         if self.fig is None:
