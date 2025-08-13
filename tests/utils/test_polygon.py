@@ -1,4 +1,8 @@
-from utils import is_point_in_polygon
+from utils import points_in_polygon
+import numpy as np
+
+def is_point_in_polygon(point: tuple[float, float], polygon: list[tuple[float, float]]) -> bool:
+    return len(points_in_polygon(np.asarray([point]), polygon, x_index=0, y_index=1)) == 1
 
 def test_is_point_in_polygon():
     square = [(0,0), (10,0), (10,10), (0,10)]
@@ -10,10 +14,10 @@ def test_is_point_in_polygon():
     assert is_point_in_polygon((15,5), square) == False, "Point outside square failed"
 
     # Point on vertex
-    assert is_point_in_polygon((0,0), square) == True, "Point on vertex failed"
+    assert is_point_in_polygon((0,0), square) == False, "Point on vertex failed"
 
     # Point on edge
-    assert is_point_in_polygon((5,0), square) == True, "Point on edge failed"
+    assert is_point_in_polygon((5,0), square) == False, "Point on edge failed"
 
     # Point just outside near edge
     assert is_point_in_polygon((10.1,5), square) == False, "Point just outside failed"

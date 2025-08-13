@@ -74,7 +74,7 @@ class TkinterUi:
             main_frame, padding="10", style='DarkFrame.TFrame')
         project_browser_frame.pack(fill=tk.BOTH, expand=True)
 
-        browser = ProjectBrowser()
+        browser = ProjectBrowser(on_update=lambda: print("Selected new project."))
         browser.render_frame(project_browser_frame)
 
         # Graph Frame
