@@ -4,7 +4,19 @@ import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 import matplotlib.ticker as ticker
 import numpy as np
-from utils.polygon import points_in_polygon
+# A utility function, 'points_in_polygon', would be in a separate file.
+# from utils.polygon import points_in_polygon
+
+# This is a placeholder for the actual 'points_in_polygon' function
+# to make the provided code runnable.
+def points_in_polygon(data, polygon_vertices):
+    """
+    A placeholder function to simulate checking which points from 'data'
+    fall inside the 'polygon_vertices'.
+    """
+    print("Checking for points inside the polygon...")
+    return []
+
 
 @dataclass
 class Plot:
@@ -36,10 +48,10 @@ class Plot:
         self.ax.set_xlabel('Time of flight (ns)')
         self.ax.set_ylabel('Energy channel')
 
-        # Create artists **once** and attach to Axes
-        self.scatter = self.ax.scatter([], [], color='red', marker='o')
-        self.polygon_line, = self.ax.plot([], [], color='red')
-        self.closing_line, = self.ax.plot([], [], color='orange', linestyle='--')
+        # Create artists **once** and attach to Axes. zorder ensures they draw on top.
+        self.scatter = self.ax.scatter([], [], color='red', marker='o', zorder=5)
+        self.polygon_line, = self.ax.plot([], [], color='red', zorder=5)
+        self.closing_line, = self.ax.plot([], [], color='red', linestyle='--', zorder=5)
 
         self.fig.tight_layout()
         self.fig.canvas.draw()  # Force layout & renderer
@@ -51,25 +63,27 @@ class Plot:
         return self.fig
 
     def set_data(self, pixels, extended_data, title: str) -> None:
-        """TODO: docs"""
+        """Sets the main data for the plot, preserving the polygon artists."""
         self.extended_data = extended_data
 
-        # Remove old meshes before adding new ones
+        # --- MODIFIED SECTION ---
+        # Remove old meshes before adding new ones, but DO NOT remove the polygon scatter artist.
         for coll in list(self.ax.collections):
-            coll.remove()
+            if coll is not self.scatter:
+                coll.remove()
+        # --- END MODIFIED SECTION ---
 
         white_pixels = np.where(pixels == 0, 1, np.nan)
-        self.ax.pcolormesh(white_pixels, cmap=ListedColormap(["white"]), vmin=0, vmax=1)
+        self.ax.pcolormesh(white_pixels, cmap=ListedColormap(["white"]), vmin=0, vmax=1, zorder=1)
 
         masked_pixels = np.where(pixels >= 1, pixels, np.nan)
-        im = self.ax.pcolormesh(masked_pixels, cmap=self.cmap, norm=self.norm)
+        im = self.ax.pcolormesh(masked_pixels, cmap=self.cmap, norm=self.norm, zorder=2)
 
         if self.cbar is None:
             self.cbar = self.fig.colorbar(im, ax=self.ax)
             self.cbar.set_label('Counts')
             self.cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
         else:
-            # Update the colorbar with the new image
             self.cbar.update_normal(im)
 
         self.ax.set_title(title)
@@ -83,64 +97,50 @@ class Plot:
         self.polygon_points.append(point)
         self._update_polygon()
     
-    def _update_polygon(self):
-        if not all([self.fig, self.ax, self.scatter, self.polygon_line, self.closing_line]):
-            return
-
-        # Ensure the renderer exists
-        if self.fig.canvas.get_renderer() is None:
-            self.fig.canvas.draw()
-
-        # Restore background only if we have one
-        if self.background is not None:
-            self.fig.canvas.restore_region(self.background)
-
-        # Update scatter points
-        if not self.polygon_points:
-            self.scatter.set_offsets(np.empty((0, 2)))
-            self.polygon_line.set_data([], [])
-            self.closing_line.set_data([], [])
-        else:
-            self.scatter.set_offsets(self.polygon_points)
-            if len(self.polygon_points) > 1:
-                xs, ys = zip(*self.polygon_points)
-                self.polygon_line.set_data(xs, ys)
-                self.closing_line.set_data(
-                    [self.polygon_points[-1][0], self.polygon_points[0][0]],
-                    [self.polygon_points[-1][1], self.polygon_points[0][1]]
-                )
-            else:
-                self.polygon_line.set_data([], [])
-                self.closing_line.set_data([], [])
-
-        # Draw updated artists
-        if self.scatter.figure:
-            self.ax.draw_artist(self.scatter)
-        if self.polygon_line.figure:
-            self.ax.draw_artist(self.polygon_line)
-        if self.closing_line.figure:
-            self.ax.draw_artist(self.closing_line)
-
-        # Blit updated region
-        self.fig.canvas.blit(self.ax.bbox)
-        self.fig.canvas.flush_events()
-
-        # IMPORTANT: recapture the background so next draw keeps points
-        self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
-
-
-
     def _update_background(self, event=None):
         if self.fig and self.ax:
             self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
     
     def clear_polygon_points(self):
         if len(self.polygon_points) == 0:
-            # nothing to update
             return
         
         self.polygon_points = []
         self._update_polygon()
+    
+    def _update_polygon(self):
+        """Update the polygon overlay using blitting for efficiency."""
+        if self.background is None:
+            return
+
+        self.fig.canvas.restore_region(self.background)
+
+        if not self.polygon_points:
+            # Clear all polygon artists
+            self.scatter.set_offsets(np.empty((0, 2)))
+            self.polygon_line.set_data([], [])
+            self.closing_line.set_data([], [])
+        else:
+            x, y = zip(*self.polygon_points)
+            
+            # Update artists with new data
+            self.scatter.set_offsets(self.polygon_points)
+            self.polygon_line.set_data(x, y)
+            
+            if len(self.polygon_points) > 1:
+                self.closing_line.set_data([x[-1], x[0]], [y[-1], y[0]])
+            else:
+                self.closing_line.set_data([], [])
+        
+        # Redraw only the changed artists
+        self.ax.draw_artist(self.scatter)
+        self.ax.draw_artist(self.polygon_line)
+        self.ax.draw_artist(self.closing_line)
+
+        # Blit the updated axes to the canvas
+        self.fig.canvas.blit(self.ax.bbox)
+        self.fig.canvas.flush_events()
+
 
     def get_selected_points(self):
         if len(self.polygon_points) < 3:
@@ -149,11 +149,10 @@ class Plot:
         return points_in_polygon(self.extended_data, self.polygon_points)
     
     def save(self, filename: str):
-        """For automatically saving the plot."""
         if self.fig is None:
             self.create_plot()
         self.fig.savefig(filename)
 
     def clear(self):
-        """Clear all contents of the plot."""
+        """Clear all data contents of the plot."""
         self.set_data(np.zeros((2, 2)), [], "Error")
