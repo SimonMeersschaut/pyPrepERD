@@ -135,37 +135,36 @@ class CustomToolBar(NavigationToolbar2Tk):
         """
         # TODO: handle errors & edge cases
         # TODO: change filetypes
-        # filetypes = self.canvas.get_supported_filetypes_grouped()
-        # tk_filetypes = [
-        #     (name, " ".join(f"*.{ext}" for ext in exts))
-        #     for name, exts in sorted(filetypes.items())
-        # ]
+        filetypes = self.canvas.get_supported_filetypes_grouped()
+        tk_filetypes = [
+            (name, " ".join(f"*.{ext}" for ext in exts))
+            for name, exts in sorted(filetypes.items())
+        ]
 
-        # fname = tkinter.filedialog.asksaveasfilename(
-        #     master=self.canvas.get_tk_widget().master,
-        #     title="Export selected data",
-        #     filetypes=tk_filetypes,
-        #     defaultextension="c",
-        #     initialdir="\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test",
-        #     initialfile="selection.c",
-        #     # typevariable=filetype_variable
-        # )\
-
-        fname = "\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test\\out.ext"
+        fname = tkinter.filedialog.asksaveasfilename(
+            master=self.canvas.get_tk_widget().master,
+            title="Export selected data",
+            filetypes=tk_filetypes,
+            defaultextension="ext",
+            initialdir="\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test",
+            initialfile="selection.ext",
+            # typevariable=filetype_variable
+        )
 
         selected_extended_data = self.plot.get_selected_points()
         analysis.dump_extended_file(selected_extended_data, fname)
-        # print(selected_points)
     
     def _update_buttons_checked(self):
+        if self.mode != _MoreModes.POLYGON:
+            self.plot.clear_polygon_points()
+        
         # sync button checkstates to match active mode
-        for text, mode in [('Zoom', _MoreModes.ZOOM), ('Pan', _MoreModes.PAN), (_MoreModes.POLYGON, "Polygon")]:
+        for text, mode in [('Zoom', _MoreModes.ZOOM), ('Pan', _MoreModes.PAN), ("Polygon", _MoreModes.POLYGON)]:
             if text in self._buttons:
                 if self.mode == mode:
                     self._buttons[text].select()
                 else:
                     self._buttons[text].deselect()
-                    self._Button
     
     def mouse_move(self, event):
         self._update_cursor(event)

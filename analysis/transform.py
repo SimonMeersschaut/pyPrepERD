@@ -13,8 +13,6 @@ def load_bparams_file(filename: str) -> np.array:
     filename: bparams (B0, B1, B2)
     """
 
-    
-
     # check exists
     if not os.path.exists(filename):
         raise FileNotFoundError(f"Bparam file {filename} not found.")
@@ -125,6 +123,8 @@ def load_flt_file(filename: str) -> np.array:
         content = f.read()
     
     lines = content.split('\n')
+    if len(lines) == 0:
+        raise RuntimeError()
     return np.asarray([[int(val) for val in line.split(' ')[:-1]] for line in lines[:-1]]) # ignore space at end of line and empty line at end of file
 
 

@@ -9,10 +9,11 @@ def load_projects() -> list:
 
 
 class ProjectBrowser:
-    def __init__(self):
+    def __init__(self, on_update:callable):
         """
         projects: dict of { project_name: [file1, file2, ...] }
         """
+        self.on_update = on_update
         # load projects
         self.projects = load_projects()
         # print(len(self.projects))
@@ -43,15 +44,35 @@ class ProjectBrowser:
             values=[],
             state="readonly"
         )
+        self.file_dropdown.bind("<<ComboboxSelected>>", self._on_file_selected)
         self.file_dropdown.grid(row=0, column=3, sticky=tk.W)
 
     def _on_project_selected(self, event=None):
         """Update files dropdown when a project is selected."""
         project = self.selected_project.get()
-        # print(f"Selected {project}")
-        # files = self.projects.get(project, [])
-        # self.file_dropdown["values"] = files
-        # if files:
-        #     self.selected_file.set(files[0])
-        # else:
-        #     self.selected_file.set("")
+
+        # Get all .flt files in the chosen folder
+        files = glob.glob(f"W:\\transfer_ERD\\{project}\\*.flt")
+
+        # Extract just the filenames (no path)
+        file_names = [f.split("\\")[-1] for f in files]
+
+        # Update the second dropdown
+        self.file_dropdown["values"] = file_names
+
+        if file_names:
+            # Select the first one by default
+            self.selected_file.set(file_names[0])
+            # Trigger update callback with full path
+            self.on_update(files[0])
+        else:
+            self.selected_file.set("")
+
+
+    def _on_file_selected(self, event=None):
+        """Trigger update when a file is selected."""
+        project = self.selected_project.get()
+        file_name = self.selected_file.get()
+        if project and file_name:
+            full_path = f"W:\\transfer_ERD\\{project}\\{file_name}"
+            self.on_update(full_path)

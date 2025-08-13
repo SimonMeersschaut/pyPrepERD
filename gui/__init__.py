@@ -6,6 +6,7 @@ from gui.plot.plot import Plot
 from .project_browser import ProjectBrowser
 from utils.grid import create_grid
 import sys
+import threading
 import signal
 
 if sys.platform.startswith("win"):
@@ -18,6 +19,7 @@ if sys.platform.startswith("win"):
     except Exception as e:
         print(f"Could not set DPI awareness: {e}")
 
+WORK_DIR = "\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test"
 
 class WhiteTheme:
     def __init__(self, root):
@@ -74,22 +76,27 @@ class TkinterUi:
             main_frame, padding="10", style='DarkFrame.TFrame')
         project_browser_frame.pack(fill=tk.BOTH, expand=True)
 
-        browser = ProjectBrowser(on_update=lambda: print("Selected new project."))
+        browser = ProjectBrowser(on_update=self.select_flt_file)
         browser.render_frame(project_browser_frame)
 
+        # Progress bar
+        self.progressbar = ttk.Progressbar(mode="determinate", maximum=60)
+        self.progressbar.place(x=30, y=60, width=200)
+        self.status_label = ttk.Label(text="", background="#E0E0E0")
+        self.status_label.place(x=240, y=60)
+
         # Graph Frame
-        graph_frame = ttk.Frame(main_frame, padding="10", style='DarkFrame.TFrame')
-        graph_frame.pack(fill=tk.BOTH, expand=True)
+        self.graph_frame = ttk.Frame(main_frame, padding="10", style='DarkFrame.TFrame')
+        self.graph_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Create and render graph
-        FILENAME = "tests/analysis/transform/ERD25_090_02A.ext"
-        extended_data = analysis.load_extended_file(FILENAME)
+        # 
+        self.plot = Plot()
+        PlotFrame(self.plot).render_frame(self.graph_frame)
 
-        pixels = create_grid(extended_data, x_index=1, y_index=2)
-        title = FILENAME.split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"
-        plot = Plot(pixels, title, extended_data)
-        PlotFrame(plot).render_frame(graph_frame)
+        #
+        self.select_flt_file("\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test\\ERD25_090_01A.flt")
 
+        #
         self.root.after(500, self._force_resize) # needed for plot to render correctly
 
     def _force_resize(self, delay_restore_ms: int = 50):
@@ -110,3 +117,46 @@ class TkinterUi:
 
     def run(self):
         self.root.mainloop()
+    
+    
+    def select_flt_file(self, filename: str):
+        """Called by ProjectBrowser when a new folder/flt file is selected."""
+
+        # Start the progress bar on the main thread
+        self.progressbar.start()
+        self.status_label.config(text="")
+
+        def worker():
+            try:
+                # --- Heavy work happens in the thread ---
+                flt_data = analysis.load_flt_file(filename)
+                ns_ch, t_offs = analysis.load_tof_file(WORK_DIR + "/Tof.in")
+                B0, B1, B2 = analysis.load_bparams_file(WORK_DIR + "/Bparams.txt")
+                extended_data = analysis.extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
+                pixels = create_grid(extended_data, x_index=1, y_index=2)
+                title = filename.split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"
+
+                # Schedule UI update back on the main thread
+                self.root.after(0, lambda: self._update_plot(pixels, extended_data, title))
+
+            except Exception as e:
+                print("Error in worker:", e)
+                # Schedule GUI cleanup on main thread
+                self.root.after(0, lambda: self._cleanup_on_error())
+
+        # Run the worker in a separate thread so the GUI stays responsive
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _cleanup_on_error(self):
+        self.progressbar.stop()
+        self.plot.clear()
+        self.status_label.config(text="❌ Error")
+
+    def _update_plot(self, pixels, extended_data, title):
+        """Updates plot and stops the progress bar — runs in main thread."""
+        self.plot.set_data(pixels, extended_data, title)
+        
+        # Show completion clearly
+        self.progressbar.stop()
+        self.progressbar.config(maximum=60, value=60)
+        self.status_label.config(text="✅ Finished")
