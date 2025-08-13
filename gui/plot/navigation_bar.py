@@ -44,6 +44,7 @@ class CustomToolBar(NavigationToolbar2Tk):
         """
 
         self.plot = plot
+        self.canvas = canvas
 
         # original_or_custom, text, tooltip_text, image_file, callback
         toolitems = (
@@ -61,6 +62,7 @@ class CustomToolBar(NavigationToolbar2Tk):
             (ORIGINAL, 'Save', 'Save the figure', 'filesave', 'save_figure'),
             (ORIGINAL, None, None, None, None),
             (CUSTOM, 'Polygon', 'Draw a polygon', 'polygon', 'draw_polygon'),
+            (CUSTOM, 'Export', 'Export the selected polygon', 'export', 'export_polygon'),
         )
 
         if window is None:
@@ -111,6 +113,9 @@ class CustomToolBar(NavigationToolbar2Tk):
     
 
     def draw_polygon(self, *args):
+        """
+        Called by tkinter ui, when the user clicks the export button.
+        """
         if self.mode == _MoreModes.POLYGON:
             self.mode = _MoreModes.NONE
             # remove polygon points
@@ -118,6 +123,22 @@ class CustomToolBar(NavigationToolbar2Tk):
         else:
             self.mode = _MoreModes.POLYGON
         self._update_buttons_checked()
+    
+    def export_polygon(self):
+        """
+        Called by tkinter ui, when the user clicks the export button.
+        Implementation is analog to matplotlib.backends.backend_tkagg.NavigationToolbar2Tk.save_figure
+        """
+        fname = tkinter.filedialog.asksaveasfilename(
+            master=self.canvas.get_tk_widget().master,
+            title="Export selected data",
+            # filetypes=tk_filetypes,
+            # defaultextension=defaultextension,
+            # initialdir=initialdir,
+            # initialfile=initialfile,
+            # typevariable=filetype_variable
+        )
+        print(fname)
     
     def _update_buttons_checked(self):
         # sync button checkstates to match active mode
@@ -127,3 +148,4 @@ class CustomToolBar(NavigationToolbar2Tk):
                     self._buttons[text].select()
                 else:
                     self._buttons[text].deselect()
+                    self._Button

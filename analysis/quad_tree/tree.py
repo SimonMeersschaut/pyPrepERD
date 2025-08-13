@@ -1,5 +1,4 @@
 """
-# TODO: check deze docs:
 QuadTree data structure for efficient spatial partitioning of 2D points.
 
 This module implements a quadtree that recursively subdivides a bounding rectangle
@@ -28,12 +27,12 @@ Typical usage example:
     print(count)  # Outputs how many points are inside the rectangle (0, 0, 30, 30)
 
 
-We use the naming convention `quadrants`, so that we can use analogies from mathematics.
+We use the naming convention `quadrants`, so that we can use analogies with mathematics.
 Note that Quadrants are numbered from 1 to 4 in Roman numerals as follows:
 
                         y
                         ^
-            II          |       I
+             II         |       I
                         |
       ----------------------------------> x
                         |

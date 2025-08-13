@@ -1,7 +1,8 @@
 """
 Author: Simon Meersschaut
 
-TODO write docs
+This package handles a subset of all tasks the project needs to perform.
+It contains functions to load, convert and dump files related to RBS measurements.
 """
 
 from .ltoa import load_lst_file, dump_flt_file

@@ -1,6 +1,8 @@
-# TODO: docs & unit tests
-
-def is_point_in_polygon(point, polygon):
+def is_point_in_polygon(point: tuple[float, float], polygon: list[ tuple[float, float] ]) -> bool:
+    """
+    Returns wether a points is contained in a polygon
+    by checking how many times an arbitrary lines crosses the edges of the polygon.
+    """
     px, py = point
     inside = False
     n = len(polygon)

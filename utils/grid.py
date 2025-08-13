@@ -8,8 +8,11 @@ def index_to_rect(x_index, y_index):
 
 def create_grid(extended_data, x_index:int, y_index:int):
     """
-    TODO: docs
-    x_index, y_index define which indices are selected from the extended data frame. (i.e. which columns)
+    Returns a two dimensional grid containing, for each [y][x], the number of points
+    that are contained in that square.
+
+    Parameters x_index, y_index define which indices are selected from the extended data frame. (i.e. which columns).
+    This way, one can use this function to plot both mass versus time, and energy versus time.
     """
 
     # TODO: zet x=(x: 50-...) en y=(y: 0-...)
