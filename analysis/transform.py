@@ -153,3 +153,27 @@ def load_extended_file(filename: str) -> np.array:
     
     lines = content.split('\n')
     return np.asarray([[float(val) for val in line.split(' ')[:-1]] for line in lines[:-1]]) # ignore space at end of line and empty line at end of file
+
+
+def dump_extended_file(data: np.array, filename: str) -> None:
+    """
+    TODO: unit tests
+    Dumps the data into an extended file.
+
+    [
+        [t_k, t, E_k, m, m_k],
+        ...
+    ]
+    `k` denotes that this unit is expressed per channel.
+    """
+
+    # check extension
+    ext = filename.split('.')[-1]
+    if ext != "ext":
+        raise NameError(f"`{filename}` has the wrong extension. Expected `ext`, got `{ext}`.")
+
+    lines = [' '.join(str(number) for number in line) + ' ' for line in data] # original format has space at end of file
+    with open(filename, 'w') as f:
+        f.write(
+            '\n'.join(lines)
+        )

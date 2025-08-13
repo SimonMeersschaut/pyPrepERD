@@ -87,7 +87,7 @@ class TkinterUi:
 
         pixels = create_grid(extended_data, x_index=1, y_index=2)
         title = FILENAME.split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"
-        plot = Plot(pixels, title)
+        plot = Plot(pixels, title, extended_data)
         PlotFrame(plot).render_frame(graph_frame)
 
         self.root.after(500, self._force_resize) # needed for plot to render correctly

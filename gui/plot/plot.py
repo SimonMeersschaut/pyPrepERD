@@ -4,12 +4,13 @@ import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 import matplotlib.ticker as ticker
 import numpy as np
-from utils.polygon import is_point_in_polygon
+from utils.polygon import points_in_polygon
 
 @dataclass
 class Plot:
     pixels: any
     display_title: str
+    extended_data: list[float, float]
 
     fig: plt.Figure = field(init=False, default=None)
     ax: plt.Axes = field(init=False, default=None)
@@ -115,16 +116,6 @@ class Plot:
         self.fig.canvas.blit(self.ax.bbox)
         self.fig.canvas.flush_events()
 
-        self.calculate_containing_points()
-
-    
-    def calculate_containing_points(self):
-        if len(self.polygon_points) < 3:
-            return
-        
-        if is_point_in_polygon((100, 100), self.polygon_points):
-            print("Point (100, 100) is inside the polygon.")
-        
 
     def _update_background(self, event=None):
         if self.fig and self.ax:
@@ -133,3 +124,9 @@ class Plot:
     def clear_polygon_points(self):
         self.polygon_points = []
         self._update_polygon()
+
+    def get_selected_points(self):
+        if len(self.polygon_points) < 3:
+            return []
+        
+        return points_in_polygon(self.extended_data, self.polygon_points)

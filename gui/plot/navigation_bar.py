@@ -5,6 +5,7 @@ import tkinter as tk
 import tkinter.font
 from matplotlib import cbook
 from matplotlib.backends._backend_tk import add_tooltip
+import analysis
 
 class _MoreModes(str, Enum):
     """Extension of `_Mode` under `matplotlib.backend_bases`."""
@@ -120,8 +121,11 @@ class CustomToolBar(NavigationToolbar2Tk):
             self.mode = _MoreModes.NONE
             # remove polygon points
             self.plot.clear_polygon_points()
+            #
+            self.set_message('')
         else:
             self.mode = _MoreModes.POLYGON
+            self.show_selected_points(0)
         self._update_buttons_checked()
     
     def export_polygon(self):
@@ -129,16 +133,29 @@ class CustomToolBar(NavigationToolbar2Tk):
         Called by tkinter ui, when the user clicks the export button.
         Implementation is analog to matplotlib.backends.backend_tkagg.NavigationToolbar2Tk.save_figure
         """
-        fname = tkinter.filedialog.asksaveasfilename(
-            master=self.canvas.get_tk_widget().master,
-            title="Export selected data",
-            # filetypes=tk_filetypes,
-            # defaultextension=defaultextension,
-            # initialdir=initialdir,
-            # initialfile=initialfile,
-            # typevariable=filetype_variable
-        )
-        print(fname)
+        # TODO: handle errors & edge cases
+        # TODO: change filetypes
+        # filetypes = self.canvas.get_supported_filetypes_grouped()
+        # tk_filetypes = [
+        #     (name, " ".join(f"*.{ext}" for ext in exts))
+        #     for name, exts in sorted(filetypes.items())
+        # ]
+
+        # fname = tkinter.filedialog.asksaveasfilename(
+        #     master=self.canvas.get_tk_widget().master,
+        #     title="Export selected data",
+        #     filetypes=tk_filetypes,
+        #     defaultextension="c",
+        #     initialdir="\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test",
+        #     initialfile="selection.c",
+        #     # typevariable=filetype_variable
+        # )\
+
+        fname = "\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test\\out.ext"
+
+        selected_extended_data = self.plot.get_selected_points()
+        analysis.dump_extended_file(selected_extended_data, fname)
+        # print(selected_points)
     
     def _update_buttons_checked(self):
         # sync button checkstates to match active mode
@@ -149,3 +166,15 @@ class CustomToolBar(NavigationToolbar2Tk):
                 else:
                     self._buttons[text].deselect()
                     self._Button
+    
+    def mouse_move(self, event):
+        self._update_cursor(event)
+        if self.mode == _MoreModes.POLYGON:
+            # Show message of selected points
+            ...
+        else:
+            # Defualt behaviour: show mouse coordinates
+            self.set_message(self._mouse_event_to_message(event))
+    
+    def show_selected_points(self, points:int):
+        self.set_message(f"{points} points selected")

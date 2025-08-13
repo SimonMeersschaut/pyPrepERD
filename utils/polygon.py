@@ -1,23 +1,13 @@
-def is_point_in_polygon(point: tuple[float, float], polygon: list[ tuple[float, float] ]) -> bool:
+from matplotlib.path import Path
+import numpy as np
+
+
+# TODO: use x_index, y_index
+
+def points_in_polygon(extended_data: list[float, float], polygon_vertices: list[ tuple[float, float] ], x_index: int = 1, y_index:int = 2) -> list:
     """
-    Returns wether a points is contained in a polygon
-    by checking how many times an arbitrary lines crosses the edges of the polygon.
+    Returns the points contained in a polygon.
     """
-    px, py = point
-    inside = False
-    n = len(polygon)
-
-    for i in range(n):
-        j = (i + 1) % n
-        xi, yi = polygon[i]
-        xj, yj = polygon[j]
-
-        # Check if point's y is between yi and yj
-        if (yi > py) != (yj > py):
-            # Find the x coordinate of the intersection of the polygon edge with the horizontal ray
-            intersect_x = xi + (py - yi) * (xj - xi) / (yj - yi)
-
-            if px < intersect_x:
-                inside = not inside  # toggle the state
-
-    return inside
+    path = Path(polygon_vertices)  # polygon as list of (x, y)
+    mask = path.contains_points(extended_data[:, [x_index, y_index]])
+    return extended_data[mask]

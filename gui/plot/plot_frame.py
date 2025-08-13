@@ -36,10 +36,6 @@ class PlotFrame:
         self.canvas.figure = self.fig
         self.canvas.draw()
 
-    def save_figure(self):
-        print("Save figure action triggered")
-        self.fig.savefig("plot_saved.png")
-
     def tk_callback(self, event):
         if self.fig:
             if self.mpl_toolbar.mode == _MoreModes.POLYGON:
@@ -56,3 +52,7 @@ class PlotFrame:
                 print(f"[tk_bind] Mouse pressed at data coords: ({round(xdata)}, {round(ydata)})")
 
                 self.plot.add_polygon_point((round(xdata), round(ydata)))
+
+                selected_points: list = self.plot.get_selected_points()
+
+                self.mpl_toolbar.show_selected_points(len(selected_points))
