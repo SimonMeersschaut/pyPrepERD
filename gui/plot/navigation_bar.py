@@ -13,9 +13,11 @@ import numpy as np
 from dataclasses import dataclass
 from abc import ABC
 import json
+import utils
 
 with open("data/atomic_weights_table.json", 'r') as f:
     ATOMS = [atom[0] for atom in json.load(f)[1:]] # remove first line
+
 
 
 class ToolItem(ABC):
@@ -100,10 +102,10 @@ class CustomToolBar(NavigationToolbar2Tk):
             ToolSpacer(),
             ToolButton(CUSTOM, 'Polygon', 'Draw a polygon', 'polygon', 'draw_polygon'),
             ToolButton(CUSTOM, 'Clear', 'Clear the current polygon', 'clear_polygon', 'clear_polygon'),
-            ToolDropdown(CUSTOM, 'Export', 'Export the selected polygon', 'update_element_dropdown'),
+            ToolDropdown(CUSTOM, '', '', 'update_element_dropdown'),
             ToolButton(ORIGINAL, 'Export', 'Export the selected polygon', 'filesave', 'export_polygon'),
             ToolSpacer(),
-            # TODO: question mark to open readme?
+            ToolButton(CUSTOM, 'Help', 'Open help', 'question_mark', 'open_help'),
         )
 
         if window is None:
@@ -273,3 +275,6 @@ class CustomToolBar(NavigationToolbar2Tk):
         else:
             # clear
             self.clear_polygon()
+        
+    def open_help(self):
+        tkinter.messagebox.showinfo("Help", utils.HELP_TEXT)

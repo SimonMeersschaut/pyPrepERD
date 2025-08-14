@@ -51,11 +51,19 @@ def handle_folder(path: str):
             new_filename = path + '/' + new_dir_name + '/' + flt_filename
             os.rename(flt_file, new_filename)
         
-            # # create cut-files folder for each directory
-            # try:
-            #     os.mkdir(path+f"/{new_dir_name}")
-            # except FileExistsError:
-            #     pass
+        # Move all other files to a raw directory
+        # e.g. job.json, any_trends.csv, erd_trends.csv, ERD25_090_01A.meta ...
+        other_files = glob.glob(path + "/*.flt")
+        if len(other_files) > 0:
+            try:
+                os.mkdir(path+f"/raw")
+            except FileExistsError:
+                pass
+            
+            for other_file in other_files:
+                other_filename = other_file.split('/')[-1].split('\\')[-1]
+                new_filename = path + "/raw/" + other_filename
+
                 
 
 def main():
