@@ -2,7 +2,6 @@ from gui.plot import Plot
 from .grid import create_grid
 from .polygon import points_in_polygon
 
-
 HELP_TEXT = """
 If you want to change configurations, head to the config folder of this program.
 This folder contains:
@@ -12,3 +11,11 @@ This folder contains:
 
 The source code of this program can be found at `https://github.com/SimonMeersschaut/pyPrepERD`.
 """
+
+WORKING_DIRECTORY = "C:\\Users\\meerss01\\Desktop\\pyPrepERD\\"
+
+IMAGES_PATH = WORKING_DIRECTORY + "data/"
+CONFIG_PATH = WORKING_DIRECTORY + "config/"
+
+TOF_FILE = CONFIG_PATH + "Tof.in"
+BPARAMS_FILE = CONFIG_PATH + "Bparams.txt"

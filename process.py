@@ -3,6 +3,7 @@ import analysis
 from gui.plot import Plot
 import os
 import utils
+# import 
 
 # WORK_DIR = "\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test"
 
@@ -22,8 +23,8 @@ def handle_folder(path: str):
             print(f"Handling {flt_file}")
 
             flt_data = analysis.load_flt_file(flt_file)
-            ns_ch, t_offs = analysis.load_tof_file("tests/analysis/transform/Tof.in")
-            B0, B1, B2 = analysis.load_bparams_file(path+"/Bparams.txt")
+            ns_ch, t_offs = analysis.load_tof_file(utils.TOF_FILE_PATH)
+            B0, B1, B2 = analysis.load_bparams_file(utils.BPARAMS_FILE)
             extended_data = analysis.extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
 
             # Create plots

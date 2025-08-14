@@ -1,4 +1,6 @@
 import unittest
+import utils
+import os
 from analysis import load_bparams_file, load_tof_file, extend_flt_data, load_flt_file
 
 
@@ -26,6 +28,10 @@ class TestTransform(unittest.TestCase):
 
         self.assertEqual(5.82033E-11, ns_ch, "`ns_ch` not the expected result.")
         self.assertEqual(-4.28867E-09, t_offs, "`t_offs` not the expected result.")
+    
+    def test_tof_file_exists(self):
+        self.assertTrue(os.path.exists(utils.TOF_FILE))
+        load_tof_file(utils.TOF_FILE)
     
     def test_load_flt_data(self):
         """

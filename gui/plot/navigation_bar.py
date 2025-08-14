@@ -15,10 +15,6 @@ from abc import ABC
 import json
 import utils
 
-with open("data/atomic_weights_table.json", 'r') as f:
-    ATOMS = [atom[0] for atom in json.load(f)[1:]] # remove first line
-
-
 
 class ToolItem(ABC):
     ...
@@ -81,6 +77,9 @@ class CustomToolBar(NavigationToolbar2Tk):
             If you want to use the toolbar with a different layout manager, use
             ``pack_toolbar=False``.
         """
+        with open(utils.CONFIG_PATH+"atomic_weights_table.json", 'r') as f:
+            ATOMS = [atom[0] for atom in json.load(f)[1:]] # remove first line
+
         self.current_project_dir = None
         self.plot = plot
         self.canvas = canvas
@@ -123,8 +122,8 @@ class CustomToolBar(NavigationToolbar2Tk):
                 if toolitem.matplotlib_original == ORIGINAL:
                     im_path = str(cbook._get_data_path(f"images/{toolitem.image_file}.png"))
                 else:
-                    im_path = f"C:\\Users\\meerss01\\Desktop\\pyPrepERD\\data\\{toolitem.image_file}.png"
-
+                    im_path = utils.IMAGES_PATH + toolitem.image_file + ".png"
+                
                 self._buttons[toolitem.text] = button = self._Button(
                     toolitem.text,
                     im_path,

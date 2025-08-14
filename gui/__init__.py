@@ -7,6 +7,7 @@ from .plot.plot_frame import PlotFrame
 from gui.plot.plot import Plot
 from .project_browser import ProjectBrowser
 from utils.grid import create_grid
+import utils
 import sys
 import threading
 import signal
@@ -54,7 +55,7 @@ class TkinterUi:
 
     def __init__(self):
         self.root = tk.Tk()
-        self.root.iconbitmap("data/icon.ico")
+        self.root.iconbitmap(utils.IMAGES_PATH + "icon.ico")
         self.root.title("pyPrepERD")
         
         # --- Force taskbar icon ---
@@ -163,8 +164,8 @@ class TkinterUi:
                 
                 # --- Heavy work happens in the thread ---
                 flt_data = analysis.load_flt_file(flt_files[0])
-                ns_ch, t_offs = analysis.load_tof_file(WORK_DIR + "/Tof.in")
-                B0, B1, B2 = analysis.load_bparams_file(WORK_DIR + "/Bparams.txt")
+                ns_ch, t_offs = analysis.load_tof_file(utils.TOF_FILE)
+                B0, B1, B2 = analysis.load_bparams_file(utils.BPARAMS_FILE)
                 extended_data = analysis.extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
                 pixels = create_grid(extended_data, x_index=1, y_index=2)
                 title = flt_files[0].split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"

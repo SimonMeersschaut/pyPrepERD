@@ -11,7 +11,7 @@ class ProjectBrowser:
         This version uses a single 'Open folder' button instead of dropdowns.
         """
         self.on_update = on_update
-        self.selected_folder = tk.StringVar(value="No folder selected")
+        self.selected_folder = tk.StringVar(value="") # TODO set initial value
 
     def render_frame(self, parent_frame):
         # Main container frame
