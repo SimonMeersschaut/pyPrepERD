@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox
 import analysis
+import ctypes
 from .plot.plot_frame import PlotFrame
 from gui.plot.plot import Plot
 from .project_browser import ProjectBrowser
@@ -53,7 +54,28 @@ class TkinterUi:
 
     def __init__(self):
         self.root = tk.Tk()
+        self.root.iconbitmap("data/icon.ico")
         self.root.title("pyPrepERD")
+        
+        # --- Force taskbar icon ---
+        # Set the App User Model ID (this is what Windows uses to group icons)
+        app_id = "pyPrepERD.App"
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+
+        # Get the window handle (HWND)
+        self.root.update_idletasks()  # make sure window exists
+        hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+
+        # Load your icon
+        hicon = ctypes.windll.user32.LoadImageW(
+            0, "data/icon.ico", 1, 0, 0, 0x00000010 | 0x00000080
+        )  # LR_LOADFROMFILE | LR_DEFAULTSIZE
+
+        # Apply the icon to the window
+        if hicon:
+            ctypes.windll.user32.SendMessageW(hwnd, 0x80, 0, hicon)  # WM_SETICON = 0x80
+
+
         self.root.geometry(f"{TkinterUi.WIDTH-1}x{TkinterUi.HEIGHT-1}")
         self.root.minsize(TkinterUi.MIN_WIDTH, TkinterUi.MIN_HEIGHT)
         # self.root.configure(bg="#282c36")
@@ -102,9 +124,9 @@ class TkinterUi:
         #
         self.root.after(500, self._force_resize) # needed for plot to render correctly
 
-    def _force_resize(self, delay_restore_ms: int = 50):
+    def _force_resize(self, ):
         """
-        Tiny resize jiggle: grow by 1px then restore after `delay_restore_ms`. FIXME is niet meer correct
+        Tiny resize jiggle: grow by 1px then restore after `delay_restore_ms`. TODO is niet meer correct
         This forces the WM/backend to recompute layout so embedded Matplotlib lays out correctly.
         """
         self.root.geometry(f"{TkinterUi.WIDTH}x{TkinterUi.HEIGHT}")
