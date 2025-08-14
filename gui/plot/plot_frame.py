@@ -12,11 +12,15 @@ class PlotFrame:
 
     def render_frame(self, parent_frame):
         self.fig = self.plot.create_plot()
+
+        # Adjust layout to prevent title from being cut off
+        self.fig.tight_layout(rect=[0, 0, 1, 0.95])  # Leave space at the top for the title
+
         self.canvas = FigureCanvasTkAgg(self.fig, master=parent_frame)
         self.canvas.draw()
 
         # Bind mouse event to canvas widget
-        self.canvas.get_tk_widget().bind("<ButtonPress-1>", self.tk_callback, add=True) # dont override existing bindings
+        self.canvas.get_tk_widget().bind("<ButtonPress-1>", self.tk_callback, add=True)
 
         # Create matplotlib toolbar
         self.mpl_toolbar = CustomToolBar(self.canvas, self.plot, parent_frame, pack_toolbar=False)
@@ -27,6 +31,7 @@ class PlotFrame:
 
         # Pack canvas below toolbar and buttons
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
+
 
     def clear_points(self):
         print("Clear points action triggered")

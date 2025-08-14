@@ -2,6 +2,7 @@ from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 from matplotlib.backend_bases import NavigationToolbar2
 from enum import Enum
 import tkinter as tk
+from tkinter import messagebox
 from tkinter import ttk
 import tkinter.font
 import numpy as np
@@ -190,6 +191,7 @@ class CustomToolBar(NavigationToolbar2Tk):
     
     def clear_polygon(self):
         self.plot.clear_polygon_points()
+        self.set_message('')
     
     def export_polygon(self):
         """
@@ -219,6 +221,9 @@ class CustomToolBar(NavigationToolbar2Tk):
         # dump polygon points
         with open(self.current_project_dir+f"/cuts/{self.selected_atom}.polygon.json", 'w') as f:
             json.dump(self.plot.polygon_points, f)
+
+        messagebox.showinfo("Success", "Sucessfully exoported cut.")
+        self.clear_polygon()
     
     def _update_buttons_checked(self):
         # sync button checkstates to match active mode

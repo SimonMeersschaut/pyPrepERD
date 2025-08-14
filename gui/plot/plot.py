@@ -23,6 +23,7 @@ class Plot:
 
     def create_plot(self):
         self.cbar = None
+        self.im = None
         self.fig, self.ax = plt.subplots()
 
         # Example colormap stuff
@@ -54,32 +55,32 @@ class Plot:
 
     def set_data(self, pixels, extended_data, title: str) -> None:
         """Sets the main data for the plot, preserving the polygon artists."""
+        self.clear_polygon_points()
+
         self.extended_data = extended_data
 
-        # Remove old meshes before adding new ones, but DO NOT remove the polygon scatter artist.
-        for coll in list(self.ax.collections):
-            if coll is not self.scatter:
-                coll.remove()
-
+        # Mask invalid pixels
         masked_pixels = np.where(pixels >= 1, pixels, np.nan)
 
-        # Assuming x goes from 0 to pixels.shape[1] and y from 0 to pixels.shape[0]
-        # Replace with your real min/max values if needed
-        im = self.ax.imshow(
-            masked_pixels,
-            cmap=self.cmap,
-            norm=self.norm,
-            origin="lower",
-            interpolation="nearest",
-            extent=[0, 300, 0, 8000],
-            aspect="auto"
-        )
+        # Create ScalarMappable to convert data -> RGBA
+        sm = plt.cm.ScalarMappable(cmap=self.cmap, norm=self.norm)
+        rgba_img = (sm.to_rgba(masked_pixels, bytes=True))  # uint8 RGBA array
 
-        if self.cbar is None:
-            self.cbar = self.fig.colorbar(im, ax=self.ax)
-            self.cbar.set_label('Counts')
+        if self.im is None:
+            # Feed pre-rendered RGBA directly to imshow
+            self.im = self.ax.imshow(
+                rgba_img,
+                origin="lower",
+                interpolation="nearest",
+                extent=[0, 300, 0, 8000],
+                aspect="auto"
+            )
+            if self.cbar is None:
+                self.cbar = self.fig.colorbar(sm, ax=self.ax)
+                self.cbar.set_label('Counts')
         else:
-            self.cbar.update_normal(im)
+            # Just update bitmap — no re-colormapping
+            self.im.set_data(rgba_img)
 
         self.ax.set_title(title)
 
@@ -91,8 +92,9 @@ class Plot:
         self.cbar.set_ticks(ticks)
         self.cbar.ax.set_yticklabels([str(t) for t in ticks])
 
-        # Force a full redraw so everything updates
+        
         self.fig.canvas.draw()
+        # self.fig.canvas.draw_idle()
 
     def add_polygon_point(self, point: tuple[float, float]):
         if self.fig is None:
@@ -110,6 +112,7 @@ class Plot:
         
         self.polygon_points = []
         self._update_polygon()
+        self.fig.canvas.draw() # Force a full redraw so everything updates
     
     def _update_polygon(self):
         """Update the polygon overlay using blitting for efficiency."""

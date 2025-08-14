@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import tkinter.messagebox
 import analysis
 from .plot.plot_frame import PlotFrame
 from gui.plot.plot import Plot
@@ -131,8 +132,10 @@ class TkinterUi:
         def worker():
             try:
                 flt_files = glob.glob(path+"\\*.flt")
-                if len(flt_files) != 1:
-                    raise ValueError()
+                if len(flt_files) == 0:
+                    raise ValueError(f"No flt files found in {path}.")
+                if len(flt_files) > 1:
+                    raise ValueError(f"More than one flt file found in {path}.")
                 
                 self.plotframe.mpl_toolbar.current_project_dir = path
                 
@@ -148,7 +151,8 @@ class TkinterUi:
                 self.root.after(0, lambda: self._update_plot(pixels, extended_data, title))
 
             except Exception as e:
-                print("Error in worker:", e)
+                print(f"Error in worker:", e)
+                tkinter.messagebox.showerror("Error opening folder", str(e))
                 # Schedule GUI cleanup on main thread
                 self.root.after(0, lambda: self._cleanup_on_error())
 
