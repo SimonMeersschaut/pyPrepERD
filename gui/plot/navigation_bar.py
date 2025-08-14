@@ -126,7 +126,7 @@ class CustomToolBar(NavigationToolbar2Tk):
             self.set_message('')
         else:
             self.mode = _MoreModes.POLYGON
-            self.show_selected_points(0)
+            self.set_message("Click to draw a polygon")
         self._update_buttons_checked()
     
     def export_polygon(self):

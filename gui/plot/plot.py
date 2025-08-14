@@ -37,9 +37,9 @@ class Plot:
         self.ax.set_ylabel('Energy channel')
 
         # Create artists **once** and attach to Axes. zorder ensures they draw on top.
-        self.scatter = self.ax.scatter([], [], color='red', marker='o', zorder=5)
-        self.polygon_line, = self.ax.plot([], [], color='red', zorder=5)
-        self.closing_line, = self.ax.plot([], [], color='red', linestyle='--', zorder=5)
+        self.scatter = self.ax.scatter([], [], color='red', marker='o', zorder=5, s=10) # s: markersize
+        self.polygon_line, = self.ax.plot([], [], color='red', zorder=5, linewidth=1)
+        self.closing_line, = self.ax.plot([], [], color='red', linestyle='--', zorder=5, linewidth=1)
 
         self.fig.tight_layout()
         self.fig.canvas.draw()  # Force layout & renderer

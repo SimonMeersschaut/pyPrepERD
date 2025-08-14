@@ -49,10 +49,10 @@ class PlotFrame:
                 flipped_y = height - event.y  # Flip Y coordinate
 
                 xdata, ydata = inv.transform((event.x, flipped_y))
-                print(f"[tk_bind] Mouse pressed at data coords: ({round(xdata)}, {round(ydata)})")
 
                 self.plot.add_polygon_point((round(xdata), round(ydata)))
 
-                selected_points: list = self.plot.get_selected_points()
+                if len(self.plot.polygon_points) >= 3:
+                    selected_points: list = self.plot.get_selected_points()
 
-                self.mpl_toolbar.show_selected_points(len(selected_points))
+                    self.mpl_toolbar.show_selected_points(len(selected_points))
