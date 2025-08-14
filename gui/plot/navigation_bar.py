@@ -2,13 +2,46 @@ from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 from matplotlib.backend_bases import NavigationToolbar2
 from enum import Enum
 import tkinter as tk
+from tkinter import ttk
 import tkinter.font
 import numpy as np
 from matplotlib import cbook
 from matplotlib.backends._backend_tk import add_tooltip
 import analysis
+import os
+from dataclasses import dataclass
+from abc import ABC
+import json
+
+with open("data/atomic_weights_table.json", 'r') as f:
+    ATOMS = [atom[0] for atom in json.load(f)[1:]] # remove first line
+
+class ToolItem(ABC):
+    ...
+
+
+class ToolSpacer(ToolItem):
+    ...
+
+@dataclass
+class ToolButton(ToolItem):
+    matplotlib_original: bool
+    text: str
+    tooltip_text: str
+    image_file: str
+    callback: str
+
+@dataclass
+class ToolDropdown(ToolItem):
+    matplotlib_original: bool
+    text: str
+    tooltip_text: str
+    # image_file: str
+    callback: str
+
 
 class _MoreModes(str, Enum):
+
     """Extension of `_Mode` under `matplotlib.backend_bases`."""
     NONE = ""
     PAN = "pan/zoom"
@@ -44,27 +77,30 @@ class CustomToolBar(NavigationToolbar2Tk):
             If you want to use the toolbar with a different layout manager, use
             ``pack_toolbar=False``.
         """
-
+        self.current_project_dir = None
         self.plot = plot
         self.canvas = canvas
+        self.selected_atom = None
 
         # original_or_custom, text, tooltip_text, image_file, callback
         toolitems = (
-            (ORIGINAL, 'Home', 'Reset original view', 'home', 'home'),
-            (ORIGINAL, 'Back', 'Back to previous view', 'back', 'back'),
-            (ORIGINAL, 'Forward', 'Forward to next view', 'forward', 'forward'),
-            # (ORIGINAL, None, None, None, None),
-            (ORIGINAL, 'Pan',
+            ToolButton(ORIGINAL, 'Home', 'Reset original view', 'home', 'home'),
+            ToolButton(ORIGINAL, 'Back', 'Back to previous view', 'back', 'back'),
+            ToolButton(ORIGINAL, 'Forward', 'Forward to next view', 'forward', 'forward'),
+            # ToolSpacer(),
+            ToolButton(ORIGINAL, 'Pan',
             'Left button pans, Right button zooms\n'
             'x/y fixes axis, CTRL fixes aspect',
             'move', 'pan'),
-            (ORIGINAL, 'Zoom', 'Zoom to rectangle\nx/y fixes axis', 'zoom_to_rect', 'zoom'),
+            ToolButton(ORIGINAL, 'Zoom', 'Zoom to rectangle\nx/y fixes axis', 'zoom_to_rect', 'zoom'),
             # (ORIGINAL, 'Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
-            (ORIGINAL, None, None, None, None),
-            (ORIGINAL, 'Save', 'Save the figure', 'filesave', 'save_figure'),
-            (ORIGINAL, None, None, None, None),
-            (CUSTOM, 'Polygon', 'Draw a polygon', 'polygon', 'draw_polygon'),
-            (CUSTOM, 'Export', 'Export the selected polygon', 'export', 'export_polygon'),
+            ToolSpacer(),
+            ToolButton(ORIGINAL, 'Save', 'Save the figure', 'filesave', 'save_figure'),
+            ToolSpacer(),
+            ToolButton(CUSTOM, 'Polygon', 'Draw a polygon', 'polygon', 'draw_polygon'),
+            ToolButton(CUSTOM, 'Clear', 'Clear the current polygon', 'clear_polygon', 'clear_polygon'),
+            ToolDropdown(CUSTOM, 'Export', 'Export the selected polygon', 'update_element_dropdown'),
+            ToolButton(CUSTOM, 'Export', 'Export the selected polygon', 'export', 'export_polygon'),
         )
 
         if window is None:
@@ -73,25 +109,32 @@ class CustomToolBar(NavigationToolbar2Tk):
                           width=int(canvas.figure.bbox.width), height=50)
 
         self._buttons = {}
-        for original_or_custom, text, tooltip_text, image_file, callback in toolitems:
-            # get image path
-            if original_or_custom == ORIGINAL:
-                im_path = str(cbook._get_data_path(f"images/{image_file}.png"))
-            else:
-                im_path = f"C:\\Users\\meerss01\\Desktop\\pyPrepERD\\data\\{image_file}.png"
-
-            if text is None:
+        for toolitem in toolitems:
+            if isinstance(toolitem, ToolSpacer):
                 # Add a spacer; return value is unused.
                 self._Spacer()
-            else:
-                self._buttons[text] = button = self._Button(
-                    text,
+            elif isinstance(toolitem, ToolButton):
+                # get image path
+                if toolitem.matplotlib_original == ORIGINAL:
+                    im_path = str(cbook._get_data_path(f"images/{toolitem.image_file}.png"))
+                else:
+                    im_path = f"C:\\Users\\meerss01\\Desktop\\pyPrepERD\\data\\{toolitem.image_file}.png"
+
+                self._buttons[toolitem.text] = button = self._Button(
+                    toolitem.text,
                     im_path,
-                    toggle=callback in ["zoom", "pan", "draw_polygon"],
-                    command=getattr(self, callback),
+                    toggle=toolitem.callback in ["zoom", "pan", "draw_polygon"],
+                    command=getattr(self, toolitem.callback),
                 )
-                if tooltip_text is not None:
-                    add_tooltip(button, tooltip_text)
+                if toolitem.tooltip_text is not None:
+                    add_tooltip(button, toolitem.tooltip_text)
+            elif isinstance(toolitem, ToolDropdown):
+                self._buttons[toolitem.text] = button = self._Dropdown(
+                    toolitem.text,
+                    options=ATOMS,
+                    default_value=ATOMS[0],
+                    command=getattr(self, toolitem.callback),
+                )
 
         self._label_font = tkinter.font.Font(root=window, size=10)
 
@@ -109,9 +152,28 @@ class CustomToolBar(NavigationToolbar2Tk):
                                        justify=tk.RIGHT)
         self._message_label.pack(side=tk.RIGHT)
 
+        # NavigationToolbar2Tk._set_image_for_button(self, b)
+
         NavigationToolbar2.__init__(self, canvas)
         if pack_toolbar:
             self.pack(side=tk.BOTTOM, fill=tk.X)
+        
+
+    def _Dropdown(self, text, options: list, default_value, command):
+        opt = tk.StringVar(value=default_value)
+        self.selected_atom = default_value
+        
+        b = ttk.Combobox(
+            self,
+            textvariable=opt,
+            values=options,
+            state="readonly",  # only allow selection, no typing
+            width=5           # adjust number of characters visible
+        )
+        b.bind("<<ComboboxSelected>>", lambda e: command(opt.get()))
+        b.pack(side=tk.LEFT)
+        
+        return b
     
 
     def draw_polygon(self, *args):
@@ -121,49 +183,44 @@ class CustomToolBar(NavigationToolbar2Tk):
         if self.mode == _MoreModes.POLYGON:
             self.mode = _MoreModes.NONE
             # remove polygon points
-            self.plot.clear_polygon_points()
-            #
-            self.set_message('')
         else:
             self.mode = _MoreModes.POLYGON
             self.set_message("Click to draw a polygon")
         self._update_buttons_checked()
+    
+    def clear_polygon(self):
+        self.plot.clear_polygon_points()
     
     def export_polygon(self):
         """
         Called by tkinter ui, when the user clicks the export button.
         Implementation is analog to matplotlib.backends.backend_tkagg.NavigationToolbar2Tk.save_figure
         """
-        # TODO: handle errors & edge cases
-        # TODO: change filetypes
-        filetypes = self.canvas.get_supported_filetypes_grouped()
-        tk_filetypes = [
-            (name, " ".join(f"*.{ext}" for ext in exts))
-            for name, exts in sorted(filetypes.items())
-        ]
-
-        fname = tkinter.filedialog.asksaveasfilename(
-            master=self.canvas.get_tk_widget().master,
-            title="Export selected data",
-            filetypes=tk_filetypes,
-            defaultextension="ext",
-            initialdir="\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test",
-            initialfile="selection.ext",
-            # typevariable=filetype_variable
-        )
-
+        if self.current_project_dir is None:
+            raise ValueError()
+        if not os.path.exists(self.current_project_dir):
+            raise FileNotFoundError(f"Project folder {self.current_project_dir} was not found.")
+        
+        try:
+            os.mkdir(self.current_project_dir+"/cuts")
+        except FileExistsError:
+            pass
+        
         # select T_k and E_k from the extended data
         selected_extended_data = self.plot.get_selected_points()
+
+        if len(selected_extended_data) == 0:
+            raise ValueError() # TODO: show popup
         # TODO: dump dit in de juiste file, met juiste extentie
         # add a linenumber 
-        output = selected_extended_data + np.linspace(1, len(selected_extended_data))
-        analysis.dump_data_frame()
-        analysis.dump_extended_file(selected_extended_data, fname)
+        # output = selected_extended_data + np.linspace(1, len(selected_extended_data))
+        analysis.dump_dataframe(selected_extended_data, self.current_project_dir+f"/cuts/{self.selected_atom}.cut")
+
+        # dump polygon points
+        with open(self.current_project_dir+f"/cuts/{self.selected_atom}.polygon.json", 'w') as f:
+            json.dump(self.plot.polygon_points, f)
     
     def _update_buttons_checked(self):
-        if self.mode != _MoreModes.POLYGON:
-            self.plot.clear_polygon_points()
-        
         # sync button checkstates to match active mode
         for text, mode in [('Zoom', _MoreModes.ZOOM), ('Pan', _MoreModes.PAN), ("Polygon", _MoreModes.POLYGON)]:
             if text in self._buttons:
@@ -182,4 +239,7 @@ class CustomToolBar(NavigationToolbar2Tk):
             self.set_message(self._mouse_event_to_message(event))
     
     def show_selected_points(self, points:int):
-        self.set_message(f"{points} points selected")
+        self.set_message(f"{points:,}".replace(",", ".") + " points selected")
+    
+    def update_element_dropdown(self, value:str):
+        self.selected_atom = value

@@ -172,6 +172,10 @@ def dump_extended_file(data: np.array, filename: str) -> None:
     if ext != "ext":
         raise NameError(f"`{filename}` has the wrong extension. Expected `ext`, got `{ext}`.")
 
+    dump_dataframe(data)
+
+def dump_dataframe(data: np.array, filename: str) -> None:
+    # check extension
     lines = [' '.join(str(number) for number in line) + ' ' for line in data] # original format has space at end of file
     with open(filename, 'w') as f:
         f.write(

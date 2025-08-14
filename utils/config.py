@@ -1,6 +1,6 @@
 import yaml
 
-with open("config/settings.yaml") as info:
+with open("config/config.yaml") as info:
     info_dict = yaml.load(info, Loader=yaml.Loader)
 
 class Config:

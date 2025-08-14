@@ -33,6 +33,8 @@ class Plot:
         self.cmap = LinearSegmentedColormap.from_list("custom_cmap", list(zip(norm_anchor_vals, anchor_colors)))
         self.norm = colors.SymLogNorm(linthresh=0.03, linscale=0.03, vmin=1, vmax=32, base=2)
 
+        
+
         self.ax.set_xlabel('Time of flight (ns)')
         self.ax.set_ylabel('Energy channel')
 
@@ -54,27 +56,40 @@ class Plot:
         """Sets the main data for the plot, preserving the polygon artists."""
         self.extended_data = extended_data
 
-        # --- MODIFIED SECTION ---
         # Remove old meshes before adding new ones, but DO NOT remove the polygon scatter artist.
         for coll in list(self.ax.collections):
             if coll is not self.scatter:
                 coll.remove()
-        # --- END MODIFIED SECTION ---
-
-        white_pixels = np.where(pixels == 0, 1, np.nan)
-        self.ax.pcolormesh(white_pixels, cmap=ListedColormap(["white"]), vmin=0, vmax=1, zorder=1)
 
         masked_pixels = np.where(pixels >= 1, pixels, np.nan)
-        im = self.ax.pcolormesh(masked_pixels, cmap=self.cmap, norm=self.norm, zorder=2)
+
+        # Assuming x goes from 0 to pixels.shape[1] and y from 0 to pixels.shape[0]
+        # Replace with your real min/max values if needed
+        im = self.ax.imshow(
+            masked_pixels,
+            cmap=self.cmap,
+            norm=self.norm,
+            origin="lower",
+            interpolation="nearest",
+            extent=[0, 300, 0, 8000],
+            aspect="auto"
+        )
 
         if self.cbar is None:
             self.cbar = self.fig.colorbar(im, ax=self.ax)
             self.cbar.set_label('Counts')
-            self.cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
         else:
             self.cbar.update_normal(im)
 
         self.ax.set_title(title)
+
+        # Force colorbar to show integer ticks instead of powers-of-two
+        self.cbar.ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+        self.cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+
+        ticks = [1, 2, 4, 8, 16, 32]
+        self.cbar.set_ticks(ticks)
+        self.cbar.ax.set_yticklabels([str(t) for t in ticks])
 
         # Force a full redraw so everything updates
         self.fig.canvas.draw()

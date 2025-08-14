@@ -8,6 +8,7 @@ from utils.grid import create_grid
 import sys
 import threading
 import signal
+import glob
 
 if sys.platform.startswith("win"):
     try:
@@ -76,7 +77,7 @@ class TkinterUi:
             main_frame, padding="10", style='DarkFrame.TFrame')
         project_browser_frame.pack(fill=tk.BOTH, expand=True)
 
-        browser = ProjectBrowser(on_update=self.select_flt_file)
+        browser = ProjectBrowser(on_update=self.select_project)
         browser.render_frame(project_browser_frame)
 
         # Progress bar
@@ -91,10 +92,11 @@ class TkinterUi:
 
         # 
         self.plot = Plot()
-        PlotFrame(self.plot).render_frame(self.graph_frame)
+        self.plotframe = PlotFrame(self.plot)
+        self.plotframe.render_frame(self.graph_frame)
 
         #
-        self.select_flt_file("\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test\\ERD25_090_01A.flt")
+        self.select_project("C:\\Users\\meerss01\\Desktop\\01A")
 
         #
         self.root.after(500, self._force_resize) # needed for plot to render correctly
@@ -119,8 +121,8 @@ class TkinterUi:
         self.root.mainloop()
     
     
-    def select_flt_file(self, filename: str):
-        """Called by ProjectBrowser when a new folder/flt file is selected."""
+    def select_project(self, path: str):
+        """Called by ProjectBrowser when a new folder is selected."""
 
         # Start the progress bar on the main thread
         self.progressbar.start()
@@ -128,13 +130,19 @@ class TkinterUi:
 
         def worker():
             try:
+                flt_files = glob.glob(path+"\\*.flt")
+                if len(flt_files) != 1:
+                    raise ValueError()
+                
+                self.plotframe.mpl_toolbar.current_project_dir = path
+                
                 # --- Heavy work happens in the thread ---
-                flt_data = analysis.load_flt_file(filename)
+                flt_data = analysis.load_flt_file(flt_files[0])
                 ns_ch, t_offs = analysis.load_tof_file(WORK_DIR + "/Tof.in")
                 B0, B1, B2 = analysis.load_bparams_file(WORK_DIR + "/Bparams.txt")
                 extended_data = analysis.extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
                 pixels = create_grid(extended_data, x_index=1, y_index=2)
-                title = filename.split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"
+                title = flt_files[0].split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"
 
                 # Schedule UI update back on the main thread
                 self.root.after(0, lambda: self._update_plot(pixels, extended_data, title))

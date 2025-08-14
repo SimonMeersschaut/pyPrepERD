@@ -33,6 +33,14 @@ class ProjectBrowser:
             values=self.projects,
             state="readonly"
         )
+        # Disable scrolling, as it crashed the application
+        # Windows & OSX
+        project_dropdown.unbind_class("TCombobox", "<MouseWheel>")
+
+        # Linux and other *nix systems:
+        project_dropdown.unbind_class("TCombobox", "<ButtonPress-4>")
+        project_dropdown.unbind_class("TCombobox", "<ButtonPress-5>")
+
         project_dropdown.grid(row=0, column=1, sticky=tk.W, padx=(0, 10))
         project_dropdown.bind("<<ComboboxSelected>>", self._on_project_selected)
 
@@ -56,6 +64,9 @@ class ProjectBrowser:
 
         # Extract just the filenames (no path)
         file_names = [f.split("\\")[-1] for f in files]
+
+        # remove _parking files
+        file_names = [file for file in file_names if not file.endswith("_parking.flt")]
 
         # Update the second dropdown
         self.file_dropdown["values"] = file_names
