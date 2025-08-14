@@ -8,25 +8,11 @@ from utils.polygon import points_in_polygon
 
 @dataclass
 class Plot:
-    # pixels: any
-    # display_title: str
-    # extended_data: list[float, float]
+    def __init__(self):
+        self.ax: plt.Axes = field(init=False, default=None)
 
-    fig: plt.Figure = field(init=False, default=None)
-    ax: plt.Axes = field(init=False, default=None)
-
-    polygon_points: list[tuple[float, float]] = field(default_factory=list, init=False)
-    scatter = None
-    polygon_line = None
-    closing_line = None
-    background = None  # for blitting
-
-    def create_plot(self):
-        self.cbar = None
-        self.im = None
         self.fig, self.ax = plt.subplots()
 
-        # Example colormap stuff
         anchor_values = np.array([1, 2, 4, 8, 16, 32])
         anchor_colors = ["#000000", "#ff5500", "#ffff00", "#00ff00", "#00ffff", "#0000ff"]
         norm_anchor_vals = (np.log2(anchor_values) - np.log2(anchor_values[0])) / \
@@ -34,8 +20,15 @@ class Plot:
         self.cmap = LinearSegmentedColormap.from_list("custom_cmap", list(zip(norm_anchor_vals, anchor_colors)))
         self.norm = colors.SymLogNorm(linthresh=0.03, linscale=0.03, vmin=1, vmax=32, base=2)
 
-        
+        self.polygon_points: list[tuple[float, float]] = []
+        self.scatter = None
+        self.polygon_line = None
+        self.closing_line = None
+        self.background = None  # for blitting
+        self.cbar = None
+        self. im = None
 
+    def create_plot(self):
         self.ax.set_xlabel('Time of flight (ns)')
         self.ax.set_ylabel('Energy channel')
 
@@ -71,8 +64,8 @@ class Plot:
             self.im = self.ax.imshow(
                 rgba_img,
                 origin="lower",
-                interpolation="nearest",
-                extent=[0, 300, 0, 8000],
+                # interpolation="nearest",
+                # extent=[0, 300, 0, 8000],
                 aspect="auto"
             )
             if self.cbar is None:
@@ -166,8 +159,7 @@ class Plot:
         return selected[:, [1, 2, 5]]
     
     def save(self, filename: str):
-        if self.fig is None:
-            self.create_plot()
+        self.create_plot()
         self.fig.savefig(filename)
 
     def clear(self):

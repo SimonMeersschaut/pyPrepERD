@@ -5,17 +5,18 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
 import tkinter.font
-import numpy as np
 from matplotlib import cbook
 from matplotlib.backends._backend_tk import add_tooltip
 import analysis
 import os
+import numpy as np
 from dataclasses import dataclass
 from abc import ABC
 import json
 
 with open("data/atomic_weights_table.json", 'r') as f:
     ATOMS = [atom[0] for atom in json.load(f)[1:]] # remove first line
+
 
 class ToolItem(ABC):
     ...
@@ -101,7 +102,7 @@ class CustomToolBar(NavigationToolbar2Tk):
             ToolButton(CUSTOM, 'Polygon', 'Draw a polygon', 'polygon', 'draw_polygon'),
             ToolButton(CUSTOM, 'Clear', 'Clear the current polygon', 'clear_polygon', 'clear_polygon'),
             ToolDropdown(CUSTOM, 'Export', 'Export the selected polygon', 'update_element_dropdown'),
-            ToolButton(CUSTOM, 'Export', 'Export the selected polygon', 'export', 'export_polygon'),
+            ToolButton(ORIGINAL, 'Export', 'Export the selected polygon', 'filesave', 'export_polygon'),
         )
 
         if window is None:
@@ -198,32 +199,33 @@ class CustomToolBar(NavigationToolbar2Tk):
         Called by tkinter ui, when the user clicks the export button.
         Implementation is analog to matplotlib.backends.backend_tkagg.NavigationToolbar2Tk.save_figure
         """
-        if self.current_project_dir is None:
-            raise ValueError()
-        if not os.path.exists(self.current_project_dir):
-            raise FileNotFoundError(f"Project folder {self.current_project_dir} was not found.")
-        
         try:
-            os.mkdir(self.current_project_dir+"/cuts")
-        except FileExistsError:
-            pass
-        
-        # select T_k and E_k from the extended data
-        selected_extended_data = self.plot.get_selected_points()
+            if self.current_project_dir is None:
+                raise ValueError("No directory was opened.")
+            if not os.path.exists(self.current_project_dir):
+                raise FileNotFoundError(f"Project folder {self.current_project_dir} was not found.")
+            
+            try:
+                os.mkdir(self.current_project_dir+"/Cut-files")
+            except FileExistsError:
+                pass
+            
+            # select T_k and E_k from the extended data
+            selected_extended_data = self.plot.get_selected_points()
 
-        if len(selected_extended_data) == 0:
-            raise ValueError() # TODO: show popup
-        # TODO: dump dit in de juiste file, met juiste extentie
-        # add a linenumber 
-        # output = selected_extended_data + np.linspace(1, len(selected_extended_data))
-        analysis.dump_dataframe(selected_extended_data, self.current_project_dir+f"/cuts/{self.selected_atom}.cut")
+            if len(selected_extended_data) == 0:
+                raise ValueError("No points selected in the polygon.")
+            # add a linenumber 
+            output = selected_extended_data + np.linspace(1, len(selected_extended_data), len(selected_extended_data)).reshape(-1, 1)
+            analysis.dump_dataframe(output, self.current_project_dir+f"/Cut-files/cut.{self.selected_atom}")
 
-        # dump polygon points
-        with open(self.current_project_dir+f"/cuts/{self.selected_atom}.polygon.json", 'w') as f:
-            json.dump(self.plot.polygon_points, f)
+            # dump polygon points
+            with open(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json", 'w') as f:
+                json.dump(self.plot.polygon_points, f)
 
-        messagebox.showinfo("Success", "Sucessfully exoported cut.")
-        self.clear_polygon()
+            messagebox.showinfo("Success", "Sucessfully exoported cut.")
+        except Exception as e:
+            tkinter.messagebox.showerror("Error exporting polygon", str(e))
     
     def _update_buttons_checked(self):
         # sync button checkstates to match active mode

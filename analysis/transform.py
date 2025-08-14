@@ -86,6 +86,7 @@ def extend_flt_data(flt_data: np.array, B0, B1, B2, ns_ch, t_offs):
             try:
                 ToFch = int(line[0])
                 Ench = int(line[1])
+                Ench = min(8000, Ench)
             except ValueError:
                 continue
 
