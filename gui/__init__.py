@@ -22,7 +22,7 @@ if sys.platform.startswith("win"):
     except Exception as e:
         print(f"Could not set DPI awareness: {e}")
 
-WORK_DIR = "\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test"
+WORK_DIR = "\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test\\01A"
 
 class WhiteTheme:
     def __init__(self, root):
@@ -119,7 +119,7 @@ class TkinterUi:
         self.plotframe.render_frame(self.graph_frame)
 
         #
-        self.select_project("C:\\Users\\meerss01\\Desktop\\01A")
+        self.select_project(WORK_DIR)
 
         #
         self.root.after(500, self._force_resize) # needed for plot to render correctly
@@ -159,7 +159,7 @@ class TkinterUi:
                 if len(flt_files) > 1:
                     raise ValueError(f"More than one flt file found in {path}.")
                 
-                self.plotframe.mpl_toolbar.current_project_dir = path
+                self.plotframe.mpl_toolbar.set_project_dir(path)
                 
                 # --- Heavy work happens in the thread ---
                 flt_data = analysis.load_flt_file(flt_files[0])
@@ -194,3 +194,8 @@ class TkinterUi:
         self.progressbar.stop()
         self.progressbar.config(maximum=60, value=60)
         self.status_label.config(text="✅ Finished")
+
+        # Now the plot is loaded, update the element dropdown
+        # this will load the current element, the associated polygon
+        # and will draw the polygon to the screen
+        self.plotframe.mpl_toolbar.update_element_dropdown(None)

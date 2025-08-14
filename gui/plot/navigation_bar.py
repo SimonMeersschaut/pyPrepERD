@@ -95,7 +95,6 @@ class CustomToolBar(NavigationToolbar2Tk):
             'x/y fixes axis, CTRL fixes aspect',
             'move', 'pan'),
             ToolButton(ORIGINAL, 'Zoom', 'Zoom to rectangle\nx/y fixes axis', 'zoom_to_rect', 'zoom'),
-            # (ORIGINAL, 'Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
             ToolSpacer(),
             ToolButton(ORIGINAL, 'Save', 'Save the figure', 'filesave', 'save_figure'),
             ToolSpacer(),
@@ -103,6 +102,8 @@ class CustomToolBar(NavigationToolbar2Tk):
             ToolButton(CUSTOM, 'Clear', 'Clear the current polygon', 'clear_polygon', 'clear_polygon'),
             ToolDropdown(CUSTOM, 'Export', 'Export the selected polygon', 'update_element_dropdown'),
             ToolButton(ORIGINAL, 'Export', 'Export the selected polygon', 'filesave', 'export_polygon'),
+            ToolSpacer(),
+            # TODO: question mark to open readme?
         )
 
         if window is None:
@@ -159,6 +160,13 @@ class CustomToolBar(NavigationToolbar2Tk):
         NavigationToolbar2.__init__(self, canvas)
         if pack_toolbar:
             self.pack(side=tk.BOTTOM, fill=tk.X)
+    
+    def set_project_dir(self, directory: str):
+        """
+        For updating the current working
+        """
+        self.current_project_dir = directory
+        self.update_element_dropdown(None)
         
 
     def _Dropdown(self, text, options: list, default_value, command):
@@ -174,10 +182,9 @@ class CustomToolBar(NavigationToolbar2Tk):
         )
         b.bind("<<ComboboxSelected>>", lambda e: command(opt.get()))
         b.pack(side=tk.LEFT)
-        
+
         return b
     
-
     def draw_polygon(self, *args):
         """
         Called by tkinter ui, when the user clicks the export button.
@@ -249,4 +256,20 @@ class CustomToolBar(NavigationToolbar2Tk):
         self.set_message(f"{points:,}".replace(",", ".") + " points selected")
     
     def update_element_dropdown(self, value:str):
-        self.selected_atom = value
+        """
+        Called by tkinter for updating the dropdown value.
+        Called by GUI for updating the associated polygon.
+        """
+
+        if value != None:
+            self.selected_atom = value
+        
+        # check if element has existing cut
+        if os.path.exists(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json"):
+            # open existing polygon
+            with open(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json", 'r') as f:
+                self.plot.polygon_points = json.load(f)
+            self.plot._update_polygon()
+        else:
+            # clear
+            self.clear_polygon()
