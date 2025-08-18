@@ -5,7 +5,9 @@ import analysis
 import ctypes
 from .plot.plot_frame import PlotFrame
 from gui.plot.plot import Plot
+from .menu_bar import CustomMenuBar
 from .project_browser import ProjectBrowser
+from .fit_wizard import FitWizard
 from utils.grid import create_grid
 import utils
 import sys
@@ -57,6 +59,12 @@ class TkinterUi:
         self.root = tk.Tk()
         self.root.iconbitmap(utils.IMAGES_PATH + "icon.ico")
         self.root.title("pyPrepERD")
+
+        self.menubar = CustomMenuBar(
+            self.root,
+            project_browser=ProjectBrowser(on_update=self.select_project),
+            fit_wizard=FitWizard()
+        )
         
         # --- Force taskbar icon ---
         # Set the App User Model ID (this is what Windows uses to group icons)
@@ -88,27 +96,29 @@ class TkinterUi:
         # Optional: Handle SIGINT to allow Ctrl+C to close the window
         signal.signal(signal.SIGINT, self.signal_handler)
 
+        self.root.config(menu=self.menubar)
+
     def initialize(self):
         main_frame = ttk.Frame(self.root, padding="10",
                                style='DarkFrame.TFrame')
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        ttk.Label(main_frame, text="📊 Graph Display",
-                  style='Heading.TLabel').pack(anchor=tk.NW, pady=(0, 10))
+        # ttk.Label(main_frame, text="📊 Graph Display",
+        #           style='Heading.TLabel').pack(anchor=tk.NW, pady=(0, 10))
 
         # Show project browser
-        project_browser_frame = ttk.Frame(
-            main_frame, padding="10", style='DarkFrame.TFrame')
-        project_browser_frame.pack(fill=tk.BOTH, expand=True)
+        # project_browser_frame = ttk.Frame(
+        #     main_frame, padding="10", style='DarkFrame.TFrame')
+        # project_browser_frame.pack(fill=tk.BOTH, expand=True)
 
-        browser = ProjectBrowser(on_update=self.select_project)
-        browser.render_frame(project_browser_frame)
+        # browser = ProjectBrowser(on_update=self.select_project)
+        # browser.render_frame(project_browser_frame)
 
         # Progress bar
         self.progressbar = ttk.Progressbar(mode="determinate", maximum=60)
-        self.progressbar.place(x=30, y=60, width=200)
+        # self.progressbar.place(x=30, y=60, width=200)
         self.status_label = ttk.Label(text="", background="#E0E0E0")
-        self.status_label.place(x=240, y=60)
+        # self.status_label.place(x=240, y=60)
 
         # Graph Frame
         self.graph_frame = ttk.Frame(main_frame, padding="10", style='DarkFrame.TFrame')

@@ -13,26 +13,26 @@ class ProjectBrowser:
         self.on_update = on_update
         self.selected_folder = tk.StringVar(value="") # TODO set initial value
 
-    def render_frame(self, parent_frame):
-        # Main container frame
-        container = ttk.Frame(parent_frame, padding="10", style="DarkFrame.TFrame")
-        container.pack(fill=tk.X, pady=5)
+    # def render_frame(self, parent_frame):
+    #     # Main container frame
+    #     container = ttk.Frame(parent_frame, padding="10", style="DarkFrame.TFrame")
+    #     container.pack(fill=tk.X, pady=5)
 
-        # Open folder button
-        open_btn = ttk.Button(container, text="Open folder", command=self._choose_folder)
-        open_btn.grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
+    #     # Open folder button
+    #     open_btn = ttk.Button(container, text="Open folder", command=self._choose_folder)
+    #     open_btn.grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
 
-        # Read-only label to show chosen folder
-        ttk.Label(container, textvariable=self.selected_folder, style="TLabel") \
-            .grid(row=0, column=1, sticky=tk.W)
+    #     # Read-only label to show chosen folder
+    #     ttk.Label(container, textvariable=self.selected_folder, style="TLabel") \
+    #         .grid(row=0, column=1, sticky=tk.W)
 
-        # Make grid tidy
-        container.columnconfigure(1, weight=1)
+    #     # Make grid tidy
+    #     container.columnconfigure(1, weight=1)
 
     def _choose_folder(self):
         global last_visited
         # Start in the old root if it exists; otherwise default
-        initial_dir = last_visited+"/.." if last_visited else r"W:\\transfer_ERD"
+        initial_dir = last_visited+"/.." if last_visited else r"W:\\transfer_ERD" # TODO: deze komt niet overeen met de initial value die echt geopened wordt
         folder = filedialog.askdirectory(initialdir=initial_dir, title="Select project folder")
         if not folder:
             return  # user cancelled

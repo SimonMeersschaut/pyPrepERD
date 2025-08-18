@@ -1,5 +1,6 @@
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 from matplotlib.backend_bases import NavigationToolbar2
+from .custom_dropdown import CustomDropdown
 from enum import Enum
 import tkinter as tk
 from tkinter import messagebox
@@ -103,8 +104,8 @@ class CustomToolBar(NavigationToolbar2Tk):
             ToolButton(CUSTOM, 'Clear', 'Clear the current polygon', 'clear_polygon', 'clear_polygon'),
             ToolDropdown(CUSTOM, '', '', 'update_element_dropdown'),
             ToolButton(ORIGINAL, 'Export', 'Export the selected polygon', 'filesave', 'export_polygon'),
-            ToolSpacer(),
-            ToolButton(CUSTOM, 'Help', 'Open help', 'question_mark', 'open_help'),
+            # ToolSpacer(),
+            # ToolButton(CUSTOM, 'Help', 'Open help', 'question_mark', 'open_help'),
         )
 
         if window is None:
