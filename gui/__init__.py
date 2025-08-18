@@ -63,7 +63,7 @@ class TkinterUi:
         self.menubar = CustomMenuBar(
             self.root,
             project_browser=ProjectBrowser(on_update=self.select_project),
-            fit_wizard=FitWizard()
+            fit_wizard=FitWizard(self.root)
         )
         
         # --- Force taskbar icon ---
