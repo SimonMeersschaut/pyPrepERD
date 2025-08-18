@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import filedialog, ttk, messagebox
+from tkinter import filedialog, ttk
+import analysis
 import utils
 import os
 import glob
@@ -8,11 +9,15 @@ import glob
 class FitWizard:
     def __init__(self, master):
         self.master = master
+        
+        self.selected_project: str = None
+        self.fit_btn = None
 
     def start(self):
         new_window = tk.Toplevel(self.master)
         new_window.title("Fit Wizard")
-        new_window.geometry("800x400")
+        new_window.geometry("500x400")
+        new_window.minsize(500, 400)
         new_window.iconbitmap(utils.IMAGES_PATH + "icon.ico")
 
         # tk.Label(new_window, text="Select a project folder.").pack(pady=10)
@@ -34,12 +39,10 @@ class FitWizard:
         self.tree.heading("Element", text="Element")
         self.tree.pack(pady=20, fill="both", expand=True)
 
-        # Bind selection to populate entry fields for editing
-        self.tree.bind("<<TreeviewSelect>>", self.on_select)
-
         # Fit button
-        fit_btn = tk.Button(new_window, text="Start Fit", command=self.start_fit)
-        fit_btn.pack(pady=5)
+        self.fit_btn = tk.Button(new_window, text="Start Fit", command=self.start_fit)
+        self.fit_btn["state"] = "disabled"
+        self.fit_btn.pack(pady=5)
 
     def browse_folder(self):
         folder = filedialog.askdirectory()
@@ -51,6 +54,10 @@ class FitWizard:
         if not os.path.exists(folder):
             raise FileNotFoundError(f"Porject folder `{folder}` not found.")
         
+        self.selected_project = folder
+
+        self.tree.delete(*self.tree.get_children())
+
         # scan folder for subdirectories
         subfolders = [f.path for f in os.scandir(folder) if f.is_dir() and not "raw" in f.path[0]] # TODO: `in` aanpassen
         
@@ -74,41 +81,11 @@ class FitWizard:
             element = cut_files[0].split('.')[-1]
             self.tree.insert("", tk.END, values=(measurement, element))
 
+        # Need at least two points to fit        
+        if len(self.tree.get_children()) >= 2:
+            # enable fit button
+            self.fit_btn["state"] = "normal"
 
-    def add_or_update(self):
-        # folder = self.folder_entry.get()
-        element = self.element_combo.get()
-
-        # if not folder:
-        #     messagebox.showerror("Error", "Please select a folder")
-        #     return
-        if not element:
-            messagebox.showerror("Error", "Please select an element")
-            return
-
-        # selected = self.tree.selection()
-        # if selected:
-            # Update existing item
-            # self.tree.item(selected, values=(folder, element))
-        # else:
-            # Add new item
-            # self.tree.insert("", tk.END, values=(folder, element))
-
-        # self.folder_entry.delete(0, tk.END)
-        # self.element_combo.set("")
-
-    def on_select(self, event):
-        selected = self.tree.selection()
-        if selected:
-            folder, element = self.tree.item(selected, "values")
-            # self.folder_entry.delete(0, tk.END)
-            # self.folder_entry.insert(0, folder)
-            self.element_combo.set(element)
     
     def start_fit(self):
-        print("Started fitting.")
-
-    # def remove_selected(self):
-    #     selected = self.tree.selection()
-    #     if selected:
-    #         self.tree.delete(selected)
+        analysis.generate_a_params(self.selected_project)
