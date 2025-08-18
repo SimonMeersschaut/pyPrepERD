@@ -30,8 +30,8 @@ class TestTransform(unittest.TestCase):
         self.assertEqual(-4.28867E-09, t_offs, "`t_offs` not the expected result.")
     
     def test_tof_file_exists(self):
-        self.assertTrue(os.path.exists(utils.TOF_FILE))
-        load_tof_file(utils.TOF_FILE)
+        self.assertTrue(os.path.exists(utils.TOF_FILE_PATH))
+        load_tof_file(utils.TOF_FILE_PATH)
     
     def test_load_flt_data(self):
         """

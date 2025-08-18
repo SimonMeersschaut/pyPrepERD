@@ -3,3 +3,4 @@
 
 # test output files
 tests/**/output.*
+tests/**/output/
