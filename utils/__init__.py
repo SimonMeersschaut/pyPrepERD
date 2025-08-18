@@ -12,7 +12,7 @@ This folder contains:
 The source code of this program can be found at `https://github.com/SimonMeersschaut/pyPrepERD`.
 """
 
-WORKING_DIRECTORY = "C:\\Users\\meerss01\\Desktop\\pyPrepERD\\"
+WORKING_DIRECTORY = "" # Root will be the working directory
 
 IMAGES_PATH = WORKING_DIRECTORY + "images/"
 CONFIG_PATH = WORKING_DIRECTORY + "config/"

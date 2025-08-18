@@ -1,5 +1,5 @@
 import tkinter as tk
-
+import webbrowser
 
 class CustomMenuBar(tk.Menu):
     def __init__(self, root, project_browser, fit_wizard):
@@ -24,5 +24,6 @@ class CustomMenuBar(tk.Menu):
 
         # Help menu
         help_menu = tk.Menu(self, tearoff=0)
-        help_menu.add_command(label="About", command=lambda: print("open"))
+        help_menu.add_command(label="About", accelerator="Ctrl+H", command=lambda: webbrowser.open("https://github.com/SimonMeersschaut/pyPrepERD/blob/main/README.md"))
+        root.bind("<Control-h>", lambda _: webbrowser.open("https://github.com/SimonMeersschaut/pyPrepERD/blob/main/README.md"))
         self.add_cascade(label="Help", menu=help_menu)

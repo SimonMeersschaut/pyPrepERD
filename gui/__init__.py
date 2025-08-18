@@ -174,8 +174,8 @@ class TkinterUi:
                 
                 # --- Heavy work happens in the thread ---
                 flt_data = analysis.load_flt_file(flt_files[0])
-                ns_ch, t_offs = analysis.load_tof_file(utils.TOF_FILE)
-                B0, B1, B2 = analysis.load_bparams_file(utils.BPARAMS_FILE)
+                ns_ch, t_offs = analysis.load_tof_file(utils.TOF_FILE_PATH)
+                B0, B1, B2 = analysis.load_bparams_file(utils.BPARAMS_FILE_PATH)
                 extended_data = analysis.extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
                 pixels = create_grid(extended_data, x_index=1, y_index=2)
                 title = flt_files[0].split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"
