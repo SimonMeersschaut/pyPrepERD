@@ -14,7 +14,7 @@ The source code of this program can be found at `https://github.com/SimonMeerssc
 
 WORKING_DIRECTORY = "C:\\Users\\meerss01\\Desktop\\pyPrepERD\\"
 
-IMAGES_PATH = WORKING_DIRECTORY + "data/"
+IMAGES_PATH = WORKING_DIRECTORY + "images/"
 CONFIG_PATH = WORKING_DIRECTORY + "config/"
 
 TOF_FILE_PATH = CONFIG_PATH + "Tof.in"
