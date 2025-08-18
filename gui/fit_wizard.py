@@ -14,16 +14,16 @@ class FitWizard:
         self.fit_btn = None
 
     def start(self):
-        new_window = tk.Toplevel(self.master)
-        new_window.title("Fit Wizard")
-        new_window.geometry("500x400")
-        new_window.minsize(500, 400)
-        new_window.iconbitmap(utils.IMAGES_PATH + "icon.ico")
+        self.window = tk.Toplevel(self.master)
+        self.window.title("pyPrepERD - Fit Wizard")
+        self.window.geometry("500x400")
+        self.window.minsize(500, 400)
+        self.window.iconbitmap(utils.IMAGES_PATH + "icon.ico")
 
         # tk.Label(new_window, text="Select a project folder.").pack(pady=10)
 
         # Frame for folder selection
-        folder_frame = tk.Frame(new_window)
+        folder_frame = tk.Frame(self.window)
         folder_frame.pack(pady=10, fill="x", padx=20)
 
         tk.Label(folder_frame, text="Project folder:").grid(row=0, column=0, sticky="w")
@@ -34,25 +34,25 @@ class FitWizard:
         browse_btn.grid(row=0, column=2, padx=5)
 
         # Treeview for showing folder-element pairs
-        self.tree = ttk.Treeview(new_window, columns=("Measurement", "Element"), show="headings", selectmode="browse")
+        self.tree = ttk.Treeview(self.window, columns=("Measurement", "Element"), show="headings", selectmode="browse")
         self.tree.heading("Measurement", text="Measurement")
         self.tree.heading("Element", text="Element")
         self.tree.pack(pady=20, fill="both", expand=True)
 
         # Fit button
-        self.fit_btn = tk.Button(new_window, text="Start Fit", command=self.start_fit)
+        self.fit_btn = tk.Button(self.window, text="Start Fit", command=self.start_fit)
         self.fit_btn["state"] = "disabled"
         self.fit_btn.pack(pady=5)
 
     def browse_folder(self):
-        folder = filedialog.askdirectory()
+        folder = filedialog.askdirectory(parent=self.window)
 
         if not folder:
             # user canceled
             return 
 
         if not os.path.exists(folder):
-            raise FileNotFoundError(f"Porject folder `{folder}` not found.")
+            raise FileNotFoundError(f"Project folder `{folder}` not found.")
         
         self.selected_project = folder
 
@@ -65,13 +65,11 @@ class FitWizard:
             raise ValueError("The selected folder did not contain any subfolders. Be sure to select a project folder.")
         
         for subfolder in subfolders:
-            # Search lst file
-            if len(glob.glob(subfolder+"/*.lst")) == 0:
-                raise FileNotFoundError("No .lst file found in the subfolder.")
             # search polygon cut
             if not os.path.exists(subfolder+"/Cut-files"):
                 raise FileNotFoundError(subfolder + " did not contain a `Cut-files` folder.")
-            cut_files = glob.glob(subfolder+"/Cut-files/*.*")
+            
+            cut_files = [file for file in glob.glob(subfolder+"/Cut-files/*.*") if not ".json" in file]
             if len(cut_files) == 0:
                 raise FileNotFoundError(f"No cut files found in `{subfolder}/Cut-files/`.")
             elif len(cut_files) > 1:
@@ -88,4 +86,6 @@ class FitWizard:
 
     
     def start_fit(self):
-        analysis.generate_a_params(self.selected_project)
+        b_params = analysis.generate_b_params(analysis.generate_a_params(self.selected_project))
+        print(b_params)
+        analysis.save_b_params(b_params, "output.txt")

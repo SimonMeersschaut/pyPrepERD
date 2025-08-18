@@ -103,7 +103,7 @@ class CustomToolBar(NavigationToolbar2Tk):
             ToolButton(CUSTOM, 'Polygon', 'Draw a polygon', 'polygon', 'draw_polygon'),
             ToolButton(CUSTOM, 'Clear', 'Clear the current polygon', 'clear_polygon', 'clear_polygon'),
             ToolDropdown(CUSTOM, '', '', 'update_element_dropdown'),
-            ToolButton(ORIGINAL, 'Export', 'Export the selected polygon', 'filesave', 'export_polygon'),
+            ToolButton(ORIGINAL, 'Save', 'Save the selected polygon', 'filesave', 'export_polygon'),
             # ToolSpacer(),
             # ToolButton(CUSTOM, 'Help', 'Open help', 'question_mark', 'open_help'),
         )
@@ -232,7 +232,7 @@ class CustomToolBar(NavigationToolbar2Tk):
             with open(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json", 'w') as f:
                 json.dump(self.plot.polygon_points, f)
 
-            messagebox.showinfo("Success", "Sucessfully exoported cut.")
+            messagebox.showinfo("Success", "Sucessfully saved this cut in the project folder.")
         except Exception as e:
             tkinter.messagebox.showerror("Error exporting polygon", str(e))
     

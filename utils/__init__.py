@@ -1,6 +1,7 @@
 from gui.plot import Plot
 from .grid import create_grid
 from .polygon import points_in_polygon
+from .config import Config
 import os
 
 HELP_TEXT = """
@@ -20,3 +21,4 @@ CONFIG_PATH = WORKING_DIRECTORY + "config/"
 
 TOF_FILE_PATH = CONFIG_PATH + "Tof.in"
 BPARAMS_FILE_PATH = CONFIG_PATH + "Bparams.txt"
+ATOMIC_WEIGHTS_TABLE_FILE = CONFIG_PATH + "atomic_weights_table.json"

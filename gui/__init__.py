@@ -66,25 +66,6 @@ class TkinterUi:
             fit_wizard=FitWizard(self.root)
         )
         
-        # --- Force taskbar icon ---
-        # Set the App User Model ID (this is what Windows uses to group icons)
-        app_id = "pyPrepERD.App"
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
-
-        # Get the window handle (HWND)
-        self.root.update_idletasks()  # make sure window exists
-        hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
-
-        # Load your icon
-        hicon = ctypes.windll.user32.LoadImageW(
-            0, "data/icon.ico", 1, 0, 0, 0x00000010 | 0x00000080
-        )  # LR_LOADFROMFILE | LR_DEFAULTSIZE
-
-        # Apply the icon to the window
-        if hicon:
-            ctypes.windll.user32.SendMessageW(hwnd, 0x80, 0, hicon)  # WM_SETICON = 0x80
-
-
         self.root.geometry(f"{TkinterUi.WIDTH-1}x{TkinterUi.HEIGHT-1}")
         self.root.minsize(TkinterUi.MIN_WIDTH, TkinterUi.MIN_HEIGHT)
         # self.root.configure(bg="#282c36")
@@ -178,7 +159,7 @@ class TkinterUi:
                 B0, B1, B2 = analysis.load_bparams_file(utils.BPARAMS_FILE_PATH)
                 extended_data = analysis.extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
                 pixels = create_grid(extended_data, x_index=1, y_index=2)
-                title = flt_files[0].split('\\')[-1].split('/')[-1].split('.')[0] + ".mvt"
+                title = flt_files[0].split('\\')[-1].split('/')[-1].split('.')[0] + ".evt"
 
                 # Schedule UI update back on the main thread
                 self.root.after(0, lambda: self._update_plot(pixels, extended_data, title))

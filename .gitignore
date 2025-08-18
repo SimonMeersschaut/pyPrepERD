@@ -4,3 +4,6 @@
 # test output files
 tests/**/output.*
 tests/**/output/
+
+# Bparams will change at runtime
+config/Bparams.txt

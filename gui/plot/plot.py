@@ -155,7 +155,7 @@ class Plot:
         # Select points based on polygon
         selected = points_in_polygon(result, self.polygon_points, x_index=1, y_index=2)
         
-        # return only columns 1, 2 and 5
+        # return only columns 1, 2and 5 = (t, E_k, line number) respectively
         return selected[:, [1, 2, 5]]
     
     def save(self, filename: str):

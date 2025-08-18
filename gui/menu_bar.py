@@ -18,7 +18,7 @@ class CustomMenuBar(tk.Menu):
 
         # Fit menu
         edit_menu = tk.Menu(self, tearoff=0)
-        edit_menu.add_command(label="Start Fit Wizard", accelerator="Ctrl+F", command= lambda : self.fit_wizard.start())
+        edit_menu.add_command(label="Fit Wizard", accelerator="Ctrl+F", command= lambda : self.fit_wizard.start())
         root.bind("<Control-f>", lambda _: self.fit_wizard.start())
         self.add_cascade(label="Fit", menu=edit_menu)
 

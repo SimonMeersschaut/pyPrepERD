@@ -185,3 +185,14 @@ def dump_dataframe(data: np.array, filename: str) -> None:
         f.write(
             '\n'.join(lines)
         )
+    
+def load_dataframe(filename: str) -> np.array:
+    # TODO: docs
+    # TODO: replace functionality of above functions with this one.
+    
+    # Load file
+    with open(filename, 'r') as f:
+        content = f.read()
+    
+    lines = content.split('\n')
+    return np.asarray([[float(val) for val in line.split(' ')[:-1]] for line in lines[:-1]]) # ignore space at end of line and empty line at end of file
