@@ -20,15 +20,11 @@ class FitWizard:
         self.window.minsize(500, 400)
         self.window.iconbitmap(utils.IMAGES_PATH + "icon.ico")
 
-        # tk.Label(new_window, text="Select a project folder.").pack(pady=10)
-
         # Frame for folder selection
         folder_frame = tk.Frame(self.window)
         folder_frame.pack(pady=10, fill="x", padx=20)
 
         tk.Label(folder_frame, text="Project folder:").grid(row=0, column=0, sticky="w")
-        # self.folder_entry = tk.Label(folder_frame, width=50)
-        # self.folder_entry.grid(row=0, column=1, padx=5)
 
         browse_btn = tk.Button(folder_frame, text="Browse", command=self.browse_folder)
         browse_btn.grid(row=0, column=2, padx=5)
@@ -87,5 +83,5 @@ class FitWizard:
     
     def start_fit(self):
         b_params = analysis.generate_b_params(analysis.generate_a_params(self.selected_project))
-        print(b_params)
         analysis.save_b_params(b_params, "output.txt")
+        tk.messagebox.showinfo("Success", "Sucessfully fitted Bparams.")
