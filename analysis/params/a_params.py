@@ -1,15 +1,21 @@
-import numpy as np
 from analysis import load_dataframe
+from utils.grid import create_grid
+from gui.plot import Plot
+import numpy as np
+from scipy.optimize import curve_fit
 import utils
 import os
+from pathlib import Path
 import json
 import glob
 
 
-def generate_a_params(project: str) -> str:
+def generate_a_params(project: str, make_plot=True) -> str:
     """
     Generates a list with `a-params` based on measurements and a cut (=polygon)
     all located in the project folder.
+
+    Visualize this process as one moon fitting using a parabola.
     """
     if not os.path.exists(project):
         raise FileNotFoundError(f"Project folder `{project}` not found.")
@@ -21,9 +27,11 @@ def generate_a_params(project: str) -> str:
 
     for subfolder in subfolders:
         # Open cut file
-        cut_files = [file for file in glob.glob(subfolder+"/Cut-files/*.*") if not ".json" in file]
-        if len(cut_files) != 1:
-            raise RuntimeError() # TODO
+        cut_files = [file for file in glob.glob(subfolder+"/*.*") if not ".json" in file]
+        if len(cut_files) > 1:
+            raise RuntimeError(f"More thant one cut file per measurement found {subfolder}.")
+        elif len(cut_files) == 0:
+            raise RuntimeError(f"No cut files found in measurement {subfolder}.")
         
         element = cut_files[0].split('/')[-1].split('\\')[-1].split('.')[-1]
         # lookup mass in table
@@ -32,9 +40,36 @@ def generate_a_params(project: str) -> str:
         mass = [block for block in data[1:] if block[0] == element][0][1] # Returns the mass of `element`
 
         cut_data = load_dataframe(cut_files[0])
+        a1, a2, a3 = cut_data_to_a_params(cut_data)
+        
+        # Create plot
+        # plot = Plot()
+        
+        # grid, extent = create_grid(cut_data, x_index=0, y_index=1, downscale=True) # (tof, energy)
+        # plot.extent = extent
+        # plot.set_data(grid, None, f"Fit {Path(subfolder).name} {a1:.2f} + {a2:.2f} * (1/x-{a3:.2f})")
+        # plot.create_plot()
 
-        a, c = cut_data_to_a_params(cut_data)
-        a_params.append([mass, a, c])
+        # x = np.arange(1600, 7E4, 1E2)
+        # plot.polygon_line.set_data(x, model(x, a1, a2, a3))
+        # plot.fig.canvas.restore_region(plot.background)
+        # plot.ax.draw_artist(plot.polygon_line)
+        # # Blit the updated axes to the canvas
+        # plot.fig.canvas.blit(plot.ax.bbox)
+        # plot.fig.canvas.flush_events()
+
+        # plot.save("output.png")
+        # plot.show()
+
+        energy = model(utils.Config.get_setting("tofchmin"), a1, a2, a3)
+        print(energy)
+        if energy > 88419520:
+            print("Skip")
+            continue
+            # input(("error", time_of_flight_channel, a1, a2, a3))
+            # raise RuntimeWarning("Fitted energy was extremely high.")
+
+        a_params.append([mass, a1, a2, a3])
     
     if len(set([block[0] for block in a_params])) == 1:
         # all masses are equal
@@ -42,21 +77,27 @@ def generate_a_params(project: str) -> str:
 
     return a_params
 
+# Define the model function
+def model(t, a1, a2, a3):
+    return a1 + a2 * (1.0 / (t - a3))**2
+
 def cut_data_to_a_params(cut_data: np.array) -> tuple:
-    x = cut_data[:, 1]
-    y = cut_data[:, 2]
-    u = 1 / (x**2)
+    x = cut_data[:, 0]  # tof (channel)
+    y = cut_data[:, 1]  # Energy
 
-    n = len(u)
-    S_u = np.sum(u)
-    S_uu = np.sum(u**2)
-    S_y = np.sum(y)
-    S_uy = np.sum(u*y)
 
-    delta = n*S_uu - S_u**2
-    if delta == 0:
-        raise ValueError("`delta` was zero, insufficient data for the fit.")
+    # Provide a rough initial guess for the parameters
+    a1_guess = np.mean(y)
+    a2_guess = (np.max(y) - np.min(y)) * (np.mean(x)**2)
+    a3_guess = np.min(x) / 2
+    p0 = [a1_guess, a2_guess, a3_guess]
 
-    c = (n*S_uy - S_u*S_y) / delta
-    a = (S_y - c*S_u) / n
-    return a, c
+    # Fit using nonlinear least squares
+    popt, _ = curve_fit(model, x, y, p0=p0, maxfev=10000)
+
+    a1, a2, a3 = popt
+
+    if a2 <= 0:
+        raise RuntimeError("Fit values were non-sensical.")
+
+    return a1, a2, a3

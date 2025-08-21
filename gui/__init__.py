@@ -55,7 +55,9 @@ class TkinterUi:
     WIDTH = 900
     HEIGHT = 800
 
-    def __init__(self):
+    def __init__(self, filehandler):
+        self.filehandler = filehandler
+
         self.root = tk.Tk()
         self.root.iconbitmap(utils.IMAGES_PATH + "icon.ico")
         self.root.title("pyPrepERD")
@@ -84,36 +86,20 @@ class TkinterUi:
                                style='DarkFrame.TFrame')
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # ttk.Label(main_frame, text="📊 Graph Display",
-        #           style='Heading.TLabel').pack(anchor=tk.NW, pady=(0, 10))
-
-        # Show project browser
-        # project_browser_frame = ttk.Frame(
-        #     main_frame, padding="10", style='DarkFrame.TFrame')
-        # project_browser_frame.pack(fill=tk.BOTH, expand=True)
-
-        # browser = ProjectBrowser(on_update=self.select_project)
-        # browser.render_frame(project_browser_frame)
-
         # Progress bar
         self.progressbar = ttk.Progressbar(mode="determinate", maximum=60)
-        # self.progressbar.place(x=30, y=60, width=200)
         self.status_label = ttk.Label(text="", background="#E0E0E0")
-        # self.status_label.place(x=240, y=60)
 
         # Graph Frame
         self.graph_frame = ttk.Frame(main_frame, padding="10", style='DarkFrame.TFrame')
         self.graph_frame.pack(fill=tk.BOTH, expand=True)
 
-        # 
         self.plot = Plot()
         self.plotframe = PlotFrame(self.plot)
         self.plotframe.render_frame(self.graph_frame)
 
-        #
         self.select_project(WORK_DIR)
 
-        #
         self.root.after(500, self._force_resize) # needed for plot to render correctly
 
     def _force_resize(self, ):
@@ -158,11 +144,11 @@ class TkinterUi:
                 ns_ch, t_offs = analysis.load_tof_file(utils.TOF_FILE_PATH)
                 B0, B1, B2 = analysis.load_bparams_file(utils.BPARAMS_FILE_PATH)
                 extended_data = analysis.extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
-                pixels = create_grid(extended_data, x_index=1, y_index=2)
+                pixels, extent = create_grid(extended_data, x_index=1, y_index=2)
                 title = flt_files[0].split('\\')[-1].split('/')[-1].split('.')[0] + ".evt"
 
                 # Schedule UI update back on the main thread
-                self.root.after(0, lambda: self._update_plot(pixels, extended_data, title))
+                self.root.after(0, lambda: self._update_plot(pixels, extended_data, title, extent))
 
             except Exception as e:
                 print(f"Error in worker:", e)
@@ -178,9 +164,10 @@ class TkinterUi:
         self.plot.clear()
         self.status_label.config(text="❌ Error")
 
-    def _update_plot(self, pixels, extended_data, title):
+    def _update_plot(self, pixels, extended_data, title, extent):
         """Updates plot and stops the progress bar — runs in main thread."""
         self.plot.set_data(pixels, extended_data, title)
+        self.plot.extent = extent
         
         # Show completion clearly
         self.progressbar.stop()

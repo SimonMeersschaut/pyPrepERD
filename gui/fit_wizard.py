@@ -40,6 +40,10 @@ class FitWizard:
         self.fit_btn["state"] = "disabled"
         self.fit_btn.pack(pady=5)
 
+        self.selected_project = "C:\\Users\\meerss01\\Desktop\\pyPrepERD\\tests\\gui\\example-project"
+        
+        self.start_fit()
+
     def browse_folder(self):
         folder = filedialog.askdirectory(parent=self.window)
 
@@ -82,6 +86,6 @@ class FitWizard:
 
     
     def start_fit(self):
-        b_params = analysis.generate_b_params(analysis.generate_a_params(self.selected_project))
-        analysis.save_b_params(b_params, "output.txt")
+        m_params = analysis.generate_m_params(analysis.generate_a_params(self.selected_project))
+        analysis.save_m_params(m_params, "m_params.json")
         tk.messagebox.showinfo("Success", "Sucessfully fitted Bparams.")

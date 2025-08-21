@@ -27,3 +27,5 @@ class CustomMenuBar(tk.Menu):
         help_menu.add_command(label="About", accelerator="Ctrl+H", command=lambda: webbrowser.open("https://github.com/SimonMeersschaut/pyPrepERD/blob/main/README.md"))
         root.bind("<Control-h>", lambda _: webbrowser.open("https://github.com/SimonMeersschaut/pyPrepERD/blob/main/README.md"))
         self.add_cascade(label="Help", menu=help_menu)
+        
+        self.fit_wizard.start()

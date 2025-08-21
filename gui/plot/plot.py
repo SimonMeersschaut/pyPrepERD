@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
 import matplotlib.colors as colors
-from matplotlib.colors import LinearSegmentedColormap, ListedColormap
+from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.ticker as ticker
 import numpy as np
 from utils.polygon import points_in_polygon
@@ -10,7 +10,7 @@ from utils.polygon import points_in_polygon
 class Plot:
     def __init__(self):
         self.ax: plt.Axes = field(init=False, default=None)
-
+        self.extent = None # set later
         self.fig, self.ax = plt.subplots()
 
         anchor_values = np.array([1, 2, 4, 8, 16, 32])
@@ -27,6 +27,8 @@ class Plot:
         self.background = None  # for blitting
         self.cbar = None
         self. im = None
+    
+    # TODO: fix axis numbers
 
     def create_plot(self):
         self.ax.set_xlabel('Time of flight (ns)')
@@ -64,9 +66,8 @@ class Plot:
             self.im = self.ax.imshow(
                 rgba_img,
                 origin="lower",
-                # interpolation="nearest",
-                # extent=[0, 300, 0, 8000],
-                aspect="auto"
+                aspect="auto",
+                extent=self.extent
             )
             if self.cbar is None:
                 self.cbar = self.fig.colorbar(sm, ax=self.ax)
@@ -85,9 +86,7 @@ class Plot:
         self.cbar.set_ticks(ticks)
         self.cbar.ax.set_yticklabels([str(t) for t in ticks])
 
-        
         self.fig.canvas.draw()
-        # self.fig.canvas.draw_idle()
 
     def add_polygon_point(self, point: tuple[float, float]):
         if self.fig is None:
@@ -155,8 +154,8 @@ class Plot:
         # Select points based on polygon
         selected = points_in_polygon(result, self.polygon_points, x_index=1, y_index=2)
         
-        # return only columns 1, 2and 5 = (t, E_k, line number) respectively
-        return selected[:, [1, 2, 5]]
+        # return only columns 0, 2 and 5 = (t_k, E_k, line number) respectively
+        return selected[:, [0, 2, 5]]
     
     def save(self, filename: str):
         self.create_plot()
@@ -165,3 +164,6 @@ class Plot:
     def clear(self):
         """Clear all data contents of the plot."""
         self.set_data(np.zeros((2, 2)), [], "Error")
+    
+    def show(self):
+        self.fig.show()

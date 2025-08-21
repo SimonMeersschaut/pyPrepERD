@@ -1,4 +1,5 @@
 import numpy as np
+import json
 import os
 from utils.config import Config
 
@@ -185,6 +186,10 @@ def dump_dataframe(data: np.array, filename: str) -> None:
         f.write(
             '\n'.join(lines)
         )
+    
+def dump_json(data: np.array, filename: str) -> None:
+    with open(filename, 'w') as f:
+        json.dump(data, f, indent=2)
     
 def load_dataframe(filename: str) -> np.array:
     # TODO: docs

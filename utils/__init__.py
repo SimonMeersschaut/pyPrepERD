@@ -1,6 +1,7 @@
 from gui.plot import Plot
 from .grid import create_grid
 from .polygon import points_in_polygon
+from .file_handler import FileHandler
 from .config import Config
 import os
 

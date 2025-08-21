@@ -1,7 +1,9 @@
 import gui
+from utils import FileHandler
 
 
 if __name__ == "__main__":
-    ui = gui.TkinterUi()
+    filehandler = FileHandler()
+    ui = gui.TkinterUi(filehandler)
     ui.initialize()
     ui.run()
