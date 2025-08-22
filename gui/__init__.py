@@ -110,8 +110,9 @@ class TkinterUi:
         self.root.destroy()
         sys.exit(0)  # force the program to exit
 
-    def run(self):
-        self.root.mainloop()
+    def run(self, block=True):
+        if block:
+            self.root.mainloop()
     
     
     def select_project(self, path: str):

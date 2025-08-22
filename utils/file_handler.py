@@ -18,16 +18,27 @@ class FolderNotFoundError(Exception):
     def __init__(self, path: Path):
         super().__init__("The following folder could not be found:" + str(path))
 
+class FolderNotFoundWarning(Warning):
+    def __init__(self, path: Path):
+        super().__init__("The following folder could not be found:" + str(path))
+
+
 class FileHandler:
-    def __init__(self):
+    def __init__(self, remote_not_found_ok=False):
         self._root = Path("") # root of project
-        self._remote = Path("W:\\")
+        self._remote = Path("R:\\")
         
         if not self.path_exists(self._root):
             raise FolderNotFoundError(self._root)
 
         if not self.path_exists(self._remote):
-            raise FolderNotFoundError(self._remote)
+            if remote_not_found_ok:
+                # No problem, you are probably running tests on Github 👍
+                print(FolderNotFoundWarning(self._remote))
+                self._remote = self._root / "example_remote"
+            else:
+                # Whoops, the disk is not connected
+                raise FolderNotFoundError(self._remote)
     
     def path_exists(self, path: Path):
         return path.is_dir() or path.is_file()

@@ -5,7 +5,7 @@ from .file_handler import FileHandler
 with open("config/config.yaml") as info: # TODO: replace
     info_dict = yaml.load(info, Loader=yaml.Loader)
 
-filehandler = FileHandler()
+# filehandler = FileHandler()
 
 class Config:
     """
