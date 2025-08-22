@@ -62,6 +62,11 @@ class FileHandler:
     def transfer_ERD_path(self) -> Path:
         return self._remote / "transfer_ERD"
 
+    @property
+    def user_data_path(self) -> Path:
+        return self._root / "userdata"
+
+
     # Specific file paths
     @property
     def mparams_path(self) -> Path:

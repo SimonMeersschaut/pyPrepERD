@@ -1,44 +1,54 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk
 import os
+from utils import Log
 
-last_visited = None
 
 class ProjectBrowser:
-    def __init__(self, on_update: callable):
-        """
-        on_update: callback that receives the full path to a selected .flt file.
-        This version uses a single 'Open folder' button instead of dropdowns.
-        """
+    def __init__(self, parent, on_update: callable, root_dir="transfer_ERD"):
         self.on_update = on_update
-        self.selected_folder = tk.StringVar(value="") # TODO set initial value
-
-    # def render_frame(self, parent_frame):
-    #     # Main container frame
-    #     container = ttk.Frame(parent_frame, padding="10", style="DarkFrame.TFrame")
-    #     container.pack(fill=tk.X, pady=5)
-
-    #     # Open folder button
-    #     open_btn = ttk.Button(container, text="Open folder", command=self._choose_folder)
-    #     open_btn.grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
-
-    #     # Read-only label to show chosen folder
-    #     ttk.Label(container, textvariable=self.selected_folder, style="TLabel") \
-    #         .grid(row=0, column=1, sticky=tk.W)
-
-    #     # Make grid tidy
-    #     container.columnconfigure(1, weight=1)
-
+        self.parent = parent
+        self.root_dir = root_dir
+    
     def _choose_folder(self):
-        global last_visited
-        # Start in the old root if it exists; otherwise default
-        initial_dir = last_visited+"/.." if last_visited else r"transfer_ERD" # TODO: deze komt niet overeen met de initial value die echt geopened wordt  # TODO: paths
-        folder = filedialog.askdirectory(initialdir=initial_dir, title="Select project folder")
-        if not folder:
-            return  # user cancelled
-        last_visited = folder
-        # Normalize path for Windows
-        folder = os.path.normpath(folder)
-        self.selected_folder.set(folder)
+        # Create popup window
+        self.popup = tk.Toplevel(self.parent)
+        self.popup.title("Select Project Folder")
+        self.popup.geometry("400x400")
 
-        self.on_update(folder)
+        # Treeview for folders
+        self.tree = ttk.Treeview(self.popup)
+        self.tree.pack(fill="both", expand=True)
+        self.tree.bind("<<TreeviewOpen>>", self.on_open)
+        self.tree.bind("<<TreeviewSelect>>", self.on_select)
+
+        # Populate root folders
+        self.populate_tree(self.root_dir)
+
+    def populate_tree(self, path, parent=""):
+        for entry in sorted(os.listdir(path)):
+            full_path = os.path.join(path, entry)
+            if os.path.isdir(full_path):
+                valid = self.is_valid(full_path)
+                tag = "valid" if valid else "invalid"
+                self.tree.insert(parent, "end", full_path, text=entry, tags=(tag,))
+        # Configure colors
+        self.tree.tag_configure("invalid", foreground="gray")
+        self.tree.tag_configure("valid", foreground="black")
+
+    def on_open(self, event):
+        node = self.tree.focus()
+        if not self.tree.get_children(node):
+            self.populate_tree(node, node)
+
+    def on_select(self, event):
+        node = self.tree.focus()
+        if self.is_valid(node):
+            self.on_update(node)
+            self.popup.destroy()  # Close popup after selection
+        else:
+            Log.warn("Invalid Folder", "This folder is invalid. Must contain .flt files.")
+
+    def is_valid(self, folder_path):
+        # Replace with your actual validity logic
+        return any(f.endswith(".flt") for f in os.listdir(folder_path))

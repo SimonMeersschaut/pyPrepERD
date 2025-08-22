@@ -1,7 +1,7 @@
 from .erd_plot import ERDPlot
 import numpy as np
 from utils.polygon import points_in_polygon
-
+from utils import Log
 
 
 class InteractiveERDPlot(ERDPlot):
@@ -10,6 +10,7 @@ class InteractiveERDPlot(ERDPlot):
         
         self.polygon_points: list[tuple[float, float]] = []
         self.scatter = None
+        self.extended_data = None
         self.polygon_line = None
         self.closing_line = None
         self.background = None  # for blitting
@@ -91,6 +92,10 @@ class InteractiveERDPlot(ERDPlot):
     def get_selected_points(self):
         if len(self.polygon_points) < 3:
             return []
+        
+        if self.extended_data is None:
+            Log.error("Runtime error", "No data was loaded yet")
+            return
         
         # Add a column with the line number to extended data
         # Create column with row indices (line numbers)

@@ -58,7 +58,7 @@ class TkinterUi:
 
             self.menubar = CustomMenuBar(
                 self.root,
-                project_browser=ProjectBrowser(on_update=lambda path: self.select_project(Path(path))),
+                project_browser=ProjectBrowser(self.root, lambda path: self.select_project(Path(path)), self.filehandler.transfer_ERD_path),
                 fit_wizard=FitWizard(self.root, self.filehandler)
             )
             

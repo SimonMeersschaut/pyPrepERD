@@ -1,3 +1,16 @@
+"""
+AUTHOR: Simon Meersschaut
+
+This file is part of PyPrepERD, a software package
+that aims at providing users a simple GUI for the analysis
+of Elastic Recoil Detection measurements.
+
+This file in particular yields a ERDPlot class which,
+when called with the correct arguments, will return a beautiful
+2d plot of the data.
+"""
+
+
 import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
 import matplotlib.colors as colors

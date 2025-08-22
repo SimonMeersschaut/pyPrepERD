@@ -1,11 +1,12 @@
 import yaml
 import json
 from .file_handler import FileHandler
+from pathlib import Path
 
 with open("config/config.yaml") as info: # TODO: replace
     info_dict = yaml.load(info, Loader=yaml.Loader)
 
-# filehandler = FileHandler()
+filehandler = FileHandler() # TODO: Remove
 
 class Config:
     """
@@ -21,7 +22,7 @@ class Config:
     @classmethod
     def get_polygon_history(cls):
         """Returns polygons that were drawn by this user in the past."""
-        file_path = filehandler.get_root_path() / "userdata" / "polygon_history.json"
+        file_path = filehandler.user_data_path / "polygon_history.json"
         if not filehandler.path_exists(file_path): # TODO: Replace
             with open(file_path, "w+") as f:
                 f.write("{}")
@@ -31,18 +32,18 @@ class Config:
             return json.load(f)
     
     @classmethod
-    def add_polygon_to_history(cls, atom, dir, polygon) -> None:
+    def add_polygon_to_history(cls, atom, dir: Path, polygon) -> None:
         history = cls.get_polygon_history()
 
         history.update(
         {
-            dir+atom : {
-                "dir": dir,
+            str(dir)+atom : {
+                "dir": str(dir),
                 "atom": atom,
                 "polygon": polygon,
             }
         })
 
-        file_path = filehandler.get_root_path() / "userdata" / "polygon_history.json"
-        with open(file_path, "w+") as f:
-            json.dump(history, f)
+        file_path = filehandler.user_data_path / "polygon_history.json"
+        with open(str(file_path), "w+") as f:
+            json.dump(history, f, indent=2)

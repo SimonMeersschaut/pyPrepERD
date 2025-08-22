@@ -3,30 +3,23 @@ import tkinter.messagebox
 
 
 class Log:
-    @staticmethod
-    def log(cls, msg: str):
+    def log(msg: str):
         print(msg)
 
-    @staticmethod
-    def info(cls, msg: str):
+    def info(msg: str):
         tkinter.messagebox.showinfo("Application log", msg)
     
-    @staticmethod
-    def info(cls, title:str, msg: str):
+    def info(title:str, msg: str):
         tkinter.messagebox.showinfo(title, msg)
 
-    @staticmethod
-    def warn(cls, msg: str):
+    def warn(msg: str):
         tkinter.messagebox.showwarning("Application log", msg)
     
-    @staticmethod
-    def warn(cls, title:str, msg: str):
+    def warn(title:str, msg: str):
         tkinter.messagebox.showwarning(title, msg)
 
-    @staticmethod
-    def error(cls, msg: str):
+    def error(msg: str):
         tkinter.messagebox.showerror("Application log", msg)
     
-    @staticmethod
-    def error(cls, title:str, msg: str):
+    def error(title:str, msg: str):
         tkinter.messagebox.showerror(title, msg)

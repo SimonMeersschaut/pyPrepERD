@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
 import utils
+from utils import FileHandler
 
 class PolygonHistory:
-    def __init__(self, master, filehandler, callback: callable):
+    def __init__(self, master, filehandler: FileHandler, callback: callable):
         self.callback = callback
         self.filehandler = filehandler
         self.master = master
@@ -16,7 +17,7 @@ class PolygonHistory:
         self.window.title("pyPrepERD - Polygon history")
         self.window.geometry("500x400")
         self.window.minsize(500, 400)
-        self.window.iconbitmap(utils.IMAGES_PATH / "icon.ico")
+        self.window.iconbitmap(self.filehandler.images_path / "icon.ico")
 
         # Frame for folder selection (not used yet but useful for expansion)
         selection_frame = tk.Frame(self.window)

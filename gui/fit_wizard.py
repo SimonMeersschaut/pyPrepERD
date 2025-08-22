@@ -1,14 +1,15 @@
 import tkinter as tk
 from tkinter import filedialog, ttk
 import analysis
-import utils
 import os
 import glob
 from pathlib import Path
-# from utils import FileHandler
+from utils import FileHandler
+from utils import Log
+
 
 class FitWizard:
-    def __init__(self, master, filehandler):
+    def __init__(self, master, filehandler: FileHandler):
         self.filehandler = filehandler
         self.master = master
         
@@ -20,7 +21,7 @@ class FitWizard:
         self.window.title("pyPrepERD - Fit Wizard")
         self.window.geometry("500x400")
         self.window.minsize(500, 400)
-        self.window.iconbitmap(utils.IMAGES_PATH / "icon.ico")
+        self.window.iconbitmap(self.filehandler.images_path / "icon.ico")
 
         # Frame for folder selection
         folder_frame = tk.Frame(self.window)
@@ -41,10 +42,11 @@ class FitWizard:
         self.fit_btn = tk.Button(self.window, text="Start Fit", command=self.start_fit)
         self.fit_btn["state"] = "disabled"
         self.fit_btn.pack(pady=5)
-
-        self.selected_project = "C:\\Users\\meerss01\\Desktop\\pyPrepERD\\tests\\gui\\example-project"  # TODO: paths
         
-        self.start_fit()
+        self.feedback_label = tk.Label(self.window, text="", fg='#ff0000')
+        self.feedback_label.pack()
+
+        self.browse_folder()
 
     def browse_folder(self):
         folder = filedialog.askdirectory(parent=self.window)
@@ -69,26 +71,31 @@ class FitWizard:
         for subfolder in subfolders:
             # search polygon cut
             if not os.path.exists(subfolder / "Cut-files"): # TODO: paths
-                raise FileNotFoundError(subfolder + " did not contain a `Cut-files` folder.")
+                Log.warn("Invalid folder warning", str(subfolder) + " did not contain a `Cut-files` folder.")
+                continue
             
-            cut_files = [Path(file) for file in glob.glob(subfolder+"/Cut-files/*.*") if not ".json" in file] # TODO: paths
+            cut_files = [Path(file) for file in glob.glob(str(subfolder / "Cut-files" / "*.*")) if not ".json" in file] # TODO: paths
             if len(cut_files) == 0:
-                raise FileNotFoundError(f"No cut files found in `{subfolder}/Cut-files/`.")
+                Log.warn("Invalid folder warning", f"No cut files found in `{subfolder}/Cut-files/`.")
+                continue
             elif len(cut_files) > 1:
                 raise FileNotFoundError(f"More than one cut file found in `{subfolder}/Cut-files/`.") # TODO: paths
             cut_file = cut_files[0]
             
             measurement = subfolder.name
-            element = cut_files.suffix
+            element = cut_file.suffix[1:]
             self.tree.insert("", tk.END, values=(measurement, element))
 
         # Need at least two points to fit        
         if len(self.tree.get_children()) >= 2:
             # enable fit button
             self.fit_btn["state"] = "normal"
+        else:
+            self.feedback_label.config(text="You need at least two cuts to fit.")
 
     
     def start_fit(self):
-        m_params = analysis.generate_m_params(analysis.generate_a_params(self.selected_project))
-        analysis.save_m_params(m_params, self.filehandler.get_mparams_path())
-        tk.messagebox.showinfo("Success", "Sucessfully fitted Bparams.")
+        a_params = analysis.generate_a_params(self.filehandler, self.selected_project)
+        m_params = analysis.generate_m_params(a_params)
+        analysis.save_m_params(m_params, self.filehandler.mparams_path)
+        Log.info("Success", "Sucessfully fitted Bparams.")

@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from abc import ABC
 import json
 import utils
-from utils import FileHandler
+from utils import FileHandler, Log
 from pathlib import Path
 
 
@@ -213,35 +213,37 @@ class CustomToolBar(NavigationToolbar2Tk):
         Called by tkinter ui, when the user clicks the export button.
         Implementation is analog to matplotlib.backends.backend_tkagg.NavigationToolbar2Tk.save_figure
         """
+        # try:
+        if self.current_project_dir is None:
+            raise ValueError("No directory was opened.")
+        if not os.path.exists(self.current_project_dir):
+            raise FileNotFoundError(f"Project folder {self.current_project_dir} was not found.")
+        
         try:
-            if self.current_project_dir is None:
-                raise ValueError("No directory was opened.")
-            if not os.path.exists(self.current_project_dir):
-                raise FileNotFoundError(f"Project folder {self.current_project_dir} was not found.")
-            
-            try:
-                os.mkdir(self.current_project_dir+"/Cut-files") # TODO: paths
-            except FileExistsError:
-                pass
-            
-            # select T_k and E_k from the extended data
-            selected_extended_data = self.plot.get_selected_points()
+            os.mkdir(self.current_project_dir / "Cut-files") # TODO: paths
+        except FileExistsError:
+            pass
+        
+        # select T_k and E_k from the extended data
+        selected_extended_data = self.plot.get_selected_points()
 
-            if len(selected_extended_data) == 0:
-                raise ValueError("No points selected in the polygon.")
-            # add a linenumber 
-            output = selected_extended_data + np.linspace(1, len(selected_extended_data), len(selected_extended_data)).reshape(-1, 1)
-            analysis.dump_dataframe(output, self.current_project_dir+f"/Cut-files/cut.{self.selected_atom}")
+        if selected_extended_data is None:
+            return # already gave an error box
+        if len(selected_extended_data) == 0:
+            raise ValueError("No points selected in the polygon.")
+        # add a linenumber 
+        output = selected_extended_data + np.linspace(1, len(selected_extended_data), len(selected_extended_data)).reshape(-1, 1)
+        analysis.dump_dataframe(output, self.current_project_dir / "Cut-files" / f"cut.{self.selected_atom}")
 
-            # dump polygon points
-            with open(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json", 'w') as f:  # TODO: paths
-                json.dump(self.plot.polygon_points, f)
-            
-            utils.Config.add_polygon_to_history(atom=self.selected_atom, dir=self.current_project_dir, polygon=self.plot.polygon_points)
+        # dump polygon points
+        with open(self.current_project_dir / "Cut-files" / f"{self.selected_atom}.polygon.json", 'w') as f:  # TODO: paths
+            json.dump(self.plot.polygon_points, f)
+        
+        utils.Config.add_polygon_to_history(atom=self.selected_atom, dir=self.current_project_dir, polygon=self.plot.polygon_points)
 
-            messagebox.showinfo("Success", "Sucessfully saved this cut in the project folder.")
-        except Exception as e:
-            tkinter.messagebox.showerror("Error exporting polygon", str(e))
+        Log.info("Success", "Sucessfully saved this cut in the project folder.")
+        # except Exception as e:
+        #     Log.error("Error exporting polygon", str(e))
     
     def _update_buttons_checked(self):
         # sync button checkstates to match active mode
@@ -283,9 +285,6 @@ class CustomToolBar(NavigationToolbar2Tk):
             # clear
             self.clear_polygon()
         
-    # def open_help(self):
-    #     tkinter.messagebox.showinfo("Help", utils.HELP_TEXT)
-    
     def open_polygon_history(self):
         def _set_polygon_points(self, polygon):
             self.plot.polygon_points = polygon
@@ -293,7 +292,7 @@ class CustomToolBar(NavigationToolbar2Tk):
         
         polygon_history = PolygonHistory(
             self.window,
-            None,
+            self.filehandler,
             callback=lambda polygon: _set_polygon_points(self, polygon)
         )
         polygon_history.start()

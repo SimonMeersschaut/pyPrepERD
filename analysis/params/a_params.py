@@ -8,9 +8,10 @@ import os
 from pathlib import Path
 import json
 import glob
+from utils import FileHandler
 
 
-def generate_a_params(project: str, make_plot=True) -> str:
+def generate_a_params(filehandler:FileHandler, project: str, make_plot=True) -> str:
     """
     Generates a list with `a-params` based on measurements and a cut (=polygon)
     all located in the project folder.
@@ -36,7 +37,7 @@ def generate_a_params(project: str, make_plot=True) -> str:
         
         element = cut_file.suffix[1:]
         # lookup mass in table
-        with open(utils.ATOMIC_WEIGHTS_TABLE_FILE, 'r') as f:
+        with open(filehandler.atomic_weights_table_file, 'r') as f:
             data = json.load(f)
         try:
             mass = [block for block in data[1:] if block[0] == element][0][1] # Returns the mass of `element`
