@@ -3,13 +3,19 @@ AUTHOR: Simon Meersschaut
 
 This file is part of PyPrepERD, a software package
 that aims at providing users a simple GUI for the analysis
-of Elastic Recoil Detection measurements.
+of Elastic Recoil Detection measurements. In this package,
+a class called `InteractiveERDPlot` will inherit from ERDPlot
+to extend the functionality of the plot itself with polygon selection
+and much more.
+
+Altough it's primary use case is the GUI, this file will also be included
+in the source code of waspy (a project by Michiel). There, you can find it
+under `lib/iba/waspy/iba/erd_plot.py`.
 
 This file in particular yields a ERDPlot class which,
 when called with the correct arguments, will return a beautiful
 2d plot of the data.
 """
-
 
 import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
@@ -17,6 +23,58 @@ import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.ticker as ticker
 import numpy as np
+
+
+"""
+These following lines are only used in Waspy.
+Please uncomment them solely in Waspy.
+"""
+'''
+import math
+def create_erd_evt_plot(name: str, extended_flt_data: list[list[float]]):
+    np_histogram = np.asarray(extended_flt_data)
+    title = name + ".evt.png"
+    pixels = _create_grid(np_histogram, x_index=1, y_index=2)
+    plot = ERDPlot()
+    plot.set_data(pixels, np_histogram, title)
+    return plot.create_plot()
+
+def create_erd_mvt_plot(name: str, extended_flt_data: list[list[float]]):
+    np_histogram = np.asarray(extended_flt_data)
+    title = name + ".mvt.png"
+    pixels = _create_grid(np_histogram, x_index=1, y_index=4)
+    plot = ERDPlot()
+    plot.set_data(pixels, np_histogram, title)
+    return plot.create_plot()
+
+def _create_grid(extended_data, x_index:int, y_index:int):
+    """
+    Returns a two dimensional grid containing, for each [y][x], the number of points
+    that are contained in that square.
+
+    Parameters x_index, y_index define which indices are selected from the extended data frame. (i.e. which columns).
+    This way, one can use this function to plot both mass versus time, and energy versus time.
+    """
+
+    max_x = np.max(extended_data[:,x_index]) + 1
+    max_y = np.max(extended_data[:,y_index]) + 1
+    
+    #
+
+    GRID_SIZE = (
+        math.ceil(max_x),
+        math.ceil(max_y)
+    )
+
+    pixels = np.zeros((GRID_SIZE[1], GRID_SIZE[0]))
+
+    for point in extended_data:
+        x, y = point[x_index], point[y_index]
+        x_i, y_i = int(x), int(y)
+        pixels[y_i][x_i] += 1
+    
+    return pixels
+'''
 
 @dataclass
 class ERDPlot:
