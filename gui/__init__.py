@@ -47,31 +47,33 @@ class TkinterUi:
     WIDTH = 900
     HEIGHT = 800
 
-    def __init__(self, filehandler):
+    def __init__(self, filehandler, headless=False):
         self.filehandler = filehandler
 
-        self.root = tk.Tk()
+        self.root = tk.Tk(useTk=not headless)
         self.root.iconbitmap(utils.IMAGES_PATH / "icon.ico")
         self.root.title("pyPrepERD")
 
-        self.menubar = CustomMenuBar(
-            self.root,
-            project_browser=ProjectBrowser(on_update=self.select_project),
-            fit_wizard=FitWizard(self.root, self.filehandler)
-        )
-        
-        self.root.geometry(f"{TkinterUi.WIDTH-1}x{TkinterUi.HEIGHT-1}")
-        self.root.minsize(TkinterUi.MIN_WIDTH, TkinterUi.MIN_HEIGHT)
-        # self.root.configure(bg="#282c36")
-        self.theme = WhiteTheme(self.root)
+        if not headless:
 
-        # Handle close button click
-        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+            self.menubar = CustomMenuBar(
+                self.root,
+                project_browser=ProjectBrowser(on_update=self.select_project),
+                fit_wizard=FitWizard(self.root, self.filehandler)
+            )
+            
+            self.root.geometry(f"{TkinterUi.WIDTH-1}x{TkinterUi.HEIGHT-1}")
+            self.root.minsize(TkinterUi.MIN_WIDTH, TkinterUi.MIN_HEIGHT)
+            # self.root.configure(bg="#282c36")
+            self.theme = WhiteTheme(self.root)
 
-        # Optional: Handle SIGINT to allow Ctrl+C to close the window
-        signal.signal(signal.SIGINT, self.signal_handler)
+            # Handle close button click
+            self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
-        self.root.config(menu=self.menubar)
+            # Optional: Handle SIGINT to allow Ctrl+C to close the window
+            signal.signal(signal.SIGINT, self.signal_handler)
+
+            self.root.config(menu=self.menubar)
 
     def initialize(self):
         main_frame = ttk.Frame(self.root, padding="10",
