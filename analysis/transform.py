@@ -166,8 +166,6 @@ def dump_extended_file(data: np.array, filename: Path) -> None:
     dump_dataframe(data)
 
 def dump_dataframe(data: np.array, filename: Path) -> None:
-    # TODO check extension
-
     lines = [
         ' '.join(str(number) for number in line) + ' '
         for line in data

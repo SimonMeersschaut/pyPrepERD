@@ -42,7 +42,7 @@ class FitWizard:
         self.fit_btn["state"] = "disabled"
         self.fit_btn.pack(pady=5)
 
-        self.selected_project = "C:\\Users\\meerss01\\Desktop\\pyPrepERD\\tests\\gui\\example-project" # TODO: verander
+        self.selected_project = "C:\\Users\\meerss01\\Desktop\\pyPrepERD\\tests\\gui\\example-project"  # TODO: paths
         
         self.start_fit()
 
@@ -68,14 +68,14 @@ class FitWizard:
         
         for subfolder in subfolders:
             # search polygon cut
-            if not os.path.exists(subfolder / "Cut-files"):
+            if not os.path.exists(subfolder / "Cut-files"): # TODO: paths
                 raise FileNotFoundError(subfolder + " did not contain a `Cut-files` folder.")
             
-            cut_files = [Path(file) for file in glob.glob(subfolder+"/Cut-files/*.*") if not ".json" in file]
+            cut_files = [Path(file) for file in glob.glob(subfolder+"/Cut-files/*.*") if not ".json" in file] # TODO: paths
             if len(cut_files) == 0:
                 raise FileNotFoundError(f"No cut files found in `{subfolder}/Cut-files/`.")
             elif len(cut_files) > 1:
-                raise FileNotFoundError(f"More than one cut file found in `{subfolder}/Cut-files/`.")
+                raise FileNotFoundError(f"More than one cut file found in `{subfolder}/Cut-files/`.") # TODO: paths
             cut_file = cut_files[0]
             
             measurement = subfolder.name

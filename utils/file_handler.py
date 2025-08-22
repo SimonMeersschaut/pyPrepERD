@@ -1,68 +1,80 @@
 from pathlib import Path
-import os
-
-IMAGES_PATH = Path("images")
-
-WORKING_DIRECTORY = Path(os.getcwd()) # Root will be the working directory
-
-IMAGES_PATH = WORKING_DIRECTORY / "images"
-CONFIG_PATH = WORKING_DIRECTORY / "config"
-
-TOF_FILE_PATH = CONFIG_PATH / "Tof.in"
-BPARAMS_FILE_PATH = CONFIG_PATH / "Bparams.txt" # TODO: remove
-ATOMIC_WEIGHTS_TABLE_FILE = CONFIG_PATH / "atomic_weights_table.json"
-
-# TODO: Replace all file paths
+from utils import Log
 
 class FolderNotFoundError(Exception):
     def __init__(self, path: Path):
-        super().__init__("The following folder could not be found:" + str(path))
+        super().__init__(f"The following folder could not be found: {path}")
 
 class FolderNotFoundWarning(Warning):
     def __init__(self, path: Path):
-        super().__init__("The following folder could not be found:" + str(path))
+        super().__init__(f"The following folder could not be found: {path}")
 
 
 class FileHandler:
-    def __init__(self, remote_not_found_ok=False):
-        self._root = Path("") # root of project
-        self._remote = Path("W:\\")
-        
-        if not self.path_exists(self._root):
+    def __init__(self, remote_path: Path = Path("W:\\"), remote_not_found_ok=False):
+        self._root = Path.cwd()  # Use the current working directory as root
+        self._remote = Path(remote_path)
+
+        if not self._root.exists():
             raise FolderNotFoundError(self._root)
 
-        if not self.path_exists(self._remote):
+        if not self._remote.exists():
             if remote_not_found_ok:
-                # No problem, you are probably running tests on Github 👍
-                print(FolderNotFoundWarning(self._remote))
+                Log.warn(str(FolderNotFoundWarning(self._remote)) + "; we will use a stub for now.")
                 self._remote = self._root / "example_remote"
             else:
-                # Whoops, the disk is not connected
                 raise FolderNotFoundError(self._remote)
-    
-    def path_exists(self, path: Path):
-        return path.is_dir() or path.is_file()
-    
 
-    def get_stem(self, path: Path):
-        """
-        "example.txt" -> "example"
-        """
+    @staticmethod
+    def path_exists(path: Path) -> bool:
+        """Check if a path exists as a file or folder."""
+        return path.exists()
+
+    @staticmethod
+    def get_stem(path: Path) -> str:
+        """Return the stem of a file (filename without extension)."""
         return path.stem
 
-    def get_name(self, path: Path):
-        """
-        "example.txt" -> "example.txt"
-        """
+    @staticmethod
+    def get_name(path: Path) -> str:
+        """Return the name of a file (including extension)."""
         return path.name
 
-    def get_remote_path(self):
-        return self._remote
-
-    def get_root_path(self):
+    # Root and remote getters
+    @property
+    def root_path(self) -> Path:
         return self._root
 
-    def get_mparams_path(self):
-        return self._remote / "transfer_ERD" / "erd_settings" / "Mparams.json"
+    @property
+    def remote_path(self) -> Path:
+        return self._remote
 
+    # Subfolder paths
+    @property
+    def images_path(self) -> Path:
+        return self._root / "images"
+
+    @property
+    def config_path(self) -> Path:
+        return self._root / "config"
+
+    @property
+    def transfer_ERD_path(self) -> Path:
+        return self._remote / "transfer_ERD"
+
+    # Specific file paths
+    @property
+    def mparams_path(self) -> Path:
+        return  self.transfer_ERD_path / "erd_settings" / "Mparams.json"
     
+    @property
+    def tof_file_path(self) -> Path:
+        return self.config_path / "Tof.in"
+
+    @property
+    def atomic_weights_table_file(self) -> Path:
+        return self.config_path / "atomic_weights_table.json"
+    
+    @property
+    def bparams_file_path(self) -> Path:
+        return self._root / "config" / "Bparams.txt" # TODO: Replace with Mparams on remote

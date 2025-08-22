@@ -16,6 +16,8 @@ from dataclasses import dataclass
 from abc import ABC
 import json
 import utils
+from utils import FileHandler
+from pathlib import Path
 
 
 class ToolItem(ABC):
@@ -64,7 +66,7 @@ CUSTOM = 1
 
 
 class CustomToolBar(NavigationToolbar2Tk):
-    def __init__(self, canvas, plot, window=None, *, pack_toolbar=True):
+    def __init__(self, canvas, plot, filehandler: FileHandler, window=None, *, pack_toolbar=True):
 
         """
         Parameters
@@ -79,7 +81,8 @@ class CustomToolBar(NavigationToolbar2Tk):
             If you want to use the toolbar with a different layout manager, use
             ``pack_toolbar=False``.
         """
-        with open(utils.ATOMIC_WEIGHTS_TABLE_FILE, 'r') as f:
+        self.filehandler = filehandler
+        with open(self.filehandler.atomic_weights_table_file, 'r') as f:
             ATOMS = [atom[0] for atom in json.load(f)[1:]] # remove first line
 
         self.current_project_dir = None
@@ -123,9 +126,9 @@ class CustomToolBar(NavigationToolbar2Tk):
             elif isinstance(toolitem, ToolButton):
                 # get image path
                 if toolitem.matplotlib_original == ORIGINAL:
-                    im_path = str(cbook._get_data_path(f"images/{toolitem.image_file}.png"))
+                    im_path = str(cbook._get_data_path("images/" + toolitem.image_file + ".png")) # default matplotlib image
                 else:
-                    im_path = utils.IMAGES_PATH / (toolitem.image_file + ".png")
+                    im_path = self.filehandler.images_path / (toolitem.image_file + ".png")
                 
                 self._buttons[toolitem.text] = button = self._Button(
                     toolitem.text,
@@ -165,7 +168,7 @@ class CustomToolBar(NavigationToolbar2Tk):
         if pack_toolbar:
             self.pack(side=tk.BOTTOM, fill=tk.X)
     
-    def set_project_dir(self, directory: str):
+    def set_project_dir(self, directory: Path):
         """
         For updating the current working
         """
@@ -217,7 +220,7 @@ class CustomToolBar(NavigationToolbar2Tk):
                 raise FileNotFoundError(f"Project folder {self.current_project_dir} was not found.")
             
             try:
-                os.mkdir(self.current_project_dir+"/Cut-files")
+                os.mkdir(self.current_project_dir+"/Cut-files") # TODO: paths
             except FileExistsError:
                 pass
             
@@ -231,7 +234,7 @@ class CustomToolBar(NavigationToolbar2Tk):
             analysis.dump_dataframe(output, self.current_project_dir+f"/Cut-files/cut.{self.selected_atom}")
 
             # dump polygon points
-            with open(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json", 'w') as f: # TODO: replace
+            with open(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json", 'w') as f:  # TODO: paths
                 json.dump(self.plot.polygon_points, f)
             
             utils.Config.add_polygon_to_history(atom=self.selected_atom, dir=self.current_project_dir, polygon=self.plot.polygon_points)
@@ -271,9 +274,9 @@ class CustomToolBar(NavigationToolbar2Tk):
             self.selected_atom = value
         
         # check if element has existing cut
-        if os.path.exists(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json"):
+        if os.path.exists(self.current_project_dir / "Cut-files" / f"{self.selected_atom}.polygon.json"): # TODO: paths
             # open existing polygon
-            with open(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json", 'r') as f:
+            with open(self.current_project_dir / "Cut-files" / f"{self.selected_atom}.polygon.json", 'r') as f: # TODO: paths
                 self.plot.polygon_points = json.load(f)
             self.plot._update_polygon()
         else:

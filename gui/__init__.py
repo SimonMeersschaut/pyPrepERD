@@ -1,14 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-import tkinter.messagebox
 import analysis
-# from utils import FileHandler
-from .plot.plot_frame import PlotFrame
-from gui.plot import InteractiveERDPlot
-from .menu_bar import CustomMenuBar
-from .project_browser import ProjectBrowser
-from .fit_wizard import FitWizard
-from utils.grid import create_grid
 import utils
 import sys
 import threading
@@ -16,8 +8,15 @@ import signal
 import glob
 from pathlib import Path
 
+from utils import FileHandler, Log
+from utils.grid import create_grid
 
-WORK_DIR = "\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test\\01A" # TODO verander
+from .plot.plot_frame import PlotFrame
+from gui.plot import InteractiveERDPlot
+from .menu_bar import CustomMenuBar
+from .project_browser import ProjectBrowser
+from .fit_wizard import FitWizard
+
 
 class WhiteTheme:
     def __init__(self, root):
@@ -47,18 +46,19 @@ class TkinterUi:
     WIDTH = 900
     HEIGHT = 800
 
-    def __init__(self, filehandler, headless=False):
+    def __init__(self, filehandler: FileHandler, headless=False):
         self.filehandler = filehandler
+        self.workdir = self.filehandler.transfer_ERD_path / "ERD_999_TEST" # TODO: replace with glob
 
         self.root = tk.Tk(useTk=not headless)
-        self.root.iconbitmap(utils.IMAGES_PATH / "icon.ico")
+        self.root.iconbitmap(self.filehandler.images_path / "icon.ico")
         self.root.title("pyPrepERD")
 
         if not headless:
 
             self.menubar = CustomMenuBar(
                 self.root,
-                project_browser=ProjectBrowser(on_update=self.select_project),
+                project_browser=ProjectBrowser(on_update=lambda path: self.select_project(Path(path))),
                 fit_wizard=FitWizard(self.root, self.filehandler)
             )
             
@@ -89,10 +89,10 @@ class TkinterUi:
         self.graph_frame.pack(fill=tk.BOTH, expand=True)
 
         self.plot = InteractiveERDPlot()
-        self.plotframe = PlotFrame(self.plot)
+        self.plotframe = PlotFrame(self.plot, self.filehandler)
         self.plotframe.render_frame(self.graph_frame)
 
-        self.select_project(WORK_DIR)
+        self.select_project(self.workdir)
 
         self.root.after(500, self._force_resize) # needed for plot to render correctly
 
@@ -117,16 +117,15 @@ class TkinterUi:
             self.root.mainloop()
     
     
-    def select_project(self, path: str):
+    def select_project(self, path: Path):
         """Called by ProjectBrowser when a new folder is selected."""
-
         # Start the progress bar on the main thread
         self.progressbar.start()
         self.status_label.config(text="")
 
         def worker():
             try:
-                flt_files = glob.glob(path+"\\*.flt")
+                flt_files = glob.glob(str(path / "*.flt"))
                 if len(flt_files) == 0:
                     raise ValueError(f"No flt files found in {path}.")
                 if len(flt_files) > 1:
@@ -137,18 +136,19 @@ class TkinterUi:
                 
                 # --- Heavy work happens in the thread ---
                 flt_data = analysis.load_flt_file(flt_file)
-                ns_ch, t_offs = analysis.load_tof_file(utils.TOF_FILE_PATH)
-                B0, B1, B2 = analysis.load_bparams_file(utils.BPARAMS_FILE_PATH)
+                ns_ch, t_offs = analysis.load_tof_file(self.filehandler.tof_file_path)
+                B0, B1, B2 = analysis.load_bparams_file(self.filehandler.bparams_file_path)
                 extended_data = analysis.extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
                 pixels, extent = create_grid(extended_data, x_index=1, y_index=2)
                 title = self.filehandler.get_stem(Path(flt_file)) + ".evt"
+                self.plot.set_title(title)
 
                 # Schedule UI update back on the main thread
-                self.root.after(0, lambda: self._update_plot(pixels, extended_data, title, extent))
+                self.root.after(0, lambda: self._update_plot(pixels, extended_data, extent))
 
             except Exception as e:
                 print(f"Error in worker:", e)
-                tkinter.messagebox.showerror("Error opening folder", str(e))
+                Log.error("Uncaught error", "Error opening folder", str(e))
                 # Schedule GUI cleanup on main thread
                 self.root.after(0, lambda: self._cleanup_on_error())
                 raise e
@@ -161,9 +161,9 @@ class TkinterUi:
         self.plot.clear()
         self.status_label.config(text="❌ Error")
 
-    def _update_plot(self, pixels, extended_data, title, extent):
+    def _update_plot(self, pixels, extended_data, extent):
         """Updates plot and stops the progress bar — runs in main thread."""
-        self.plot.set_data(pixels, extended_data, title)
+        self.plot.set_data(pixels, extended_data)
         self.plot.extent = extent
         
         # Show completion clearly

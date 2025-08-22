@@ -1,3 +1,5 @@
+# TODO: heel deze file moet weg of herschreven worden
+
 import glob
 import analysis
 from gui.plot import ERDPlot

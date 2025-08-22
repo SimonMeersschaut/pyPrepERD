@@ -33,7 +33,7 @@ class InteractiveERDPlot(ERDPlot):
         
         return self.fig
     
-    def set_data(self, pixels, extended_data, title: str) -> None: # TODO: Remove title
+    def set_data(self, pixels, extended_data) -> None: # TODO: Remove title
         super().set_data(pixels, extended_data)
 
         self.clear_polygon_points()

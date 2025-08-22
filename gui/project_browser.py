@@ -32,7 +32,7 @@ class ProjectBrowser:
     def _choose_folder(self):
         global last_visited
         # Start in the old root if it exists; otherwise default
-        initial_dir = last_visited+"/.." if last_visited else r"transfer_ERD" # TODO: deze komt niet overeen met de initial value die echt geopened wordt # TODO: via file_handler
+        initial_dir = last_visited+"/.." if last_visited else r"transfer_ERD" # TODO: deze komt niet overeen met de initial value die echt geopened wordt  # TODO: paths
         folder = filedialog.askdirectory(initialdir=initial_dir, title="Select project folder")
         if not folder:
             return  # user cancelled

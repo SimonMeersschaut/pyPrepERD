@@ -2,6 +2,8 @@
 
 ## About
 
+The source code of this program can be found at `https://github.com/SimonMeersschaut/pyPrepERD`.
+
 This project aims at making the analysis of Elastic Recoil Detection easiers.
 It provides the analyst with a simple GUI.
 

@@ -62,7 +62,3 @@ class TestTransform(unittest.TestCase):
             ToFch, ToFns, Ench, Iso_amu, Iso_ch = extended_data[i]
             tested_line = f"{int(ToFch)} {ToFns:.3f} {int(Ench)} {Iso_amu:.4f} {int(Iso_ch)}"
             self.assertEqual(ext_expected_lines[i], tested_line, f"Line {i} did not match the expected output.")
-    
-    def test_load_extended_file(self):
-        # TODO
-        ...

@@ -1,11 +1,13 @@
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from .navigation_bar import CustomToolBar, _MoreModes
+from utils import FileHandler
 
 
 class PlotFrame:
-    def __init__(self, plot):
+    def __init__(self, plot, filehandler: FileHandler):
         self.plot = plot
+        self.filehandler = filehandler
         self.canvas = None
         self.fig = None
         self.cid = None
@@ -23,7 +25,7 @@ class PlotFrame:
         self.canvas.get_tk_widget().bind("<ButtonPress-1>", self.tk_callback, add=True)
 
         # Create matplotlib toolbar
-        self.mpl_toolbar = CustomToolBar(self.canvas, self.plot, parent_frame, pack_toolbar=False)
+        self.mpl_toolbar = CustomToolBar(self.canvas, self.plot, self.filehandler, parent_frame, pack_toolbar=False)
         self.mpl_toolbar.update()
 
         # Pack the toolbar explicitly
