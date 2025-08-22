@@ -4,13 +4,13 @@ import matplotlib.colors as colors
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.ticker as ticker
 import numpy as np
-from utils.polygon import points_in_polygon
 
 @dataclass
 class ERDPlot:
     def __init__(self):
         self.ax: plt.Axes = field(init=False, default=None)
         self.extent = None # set later
+        self.im = None # set later
         self.fig, self.ax = plt.subplots()
 
         anchor_values = np.array([1, 2, 4, 8, 16, 32])
@@ -20,38 +20,16 @@ class ERDPlot:
         self.cmap = LinearSegmentedColormap.from_list("custom_cmap", list(zip(norm_anchor_vals, anchor_colors)))
         self.norm = colors.SymLogNorm(linthresh=0.03, linscale=0.03, vmin=1, vmax=32, base=2)
 
-        self.polygon_points: list[tuple[float, float]] = []
-        self.scatter = None
-        self.polygon_line = None
-        self.closing_line = None
-        self.background = None  # for blitting
         self.cbar = None
-        self. im = None
     
-    # TODO: fix axis numbers
-
     def create_plot(self):
         self.ax.set_xlabel('Time of flight (ns)')
         self.ax.set_ylabel('Energy channel')
 
-        # Create artists **once** and attach to Axes. zorder ensures they draw on top.
-        self.scatter = self.ax.scatter([], [], color='red', marker='o', zorder=5, s=10) # s: markersize
-        self.polygon_line, = self.ax.plot([], [], color='red', zorder=5, linewidth=1)
-        self.closing_line, = self.ax.plot([], [], color='red', linestyle='--', zorder=5, linewidth=1)
-
-        self.fig.tight_layout()
-        self.fig.canvas.draw()  # Force layout & renderer
-        self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
-
-        # Update background on full draw
-        self.fig.canvas.mpl_connect("draw_event", self._update_background)
-
         return self.fig
 
-    def set_data(self, pixels, extended_data, title: str) -> None:
+    def set_data(self, pixels, extended_data) -> None:
         """Sets the main data for the plot, preserving the polygon artists."""
-        self.clear_polygon_points()
-
         self.extended_data = extended_data
 
         # Mask invalid pixels
@@ -76,8 +54,6 @@ class ERDPlot:
             # Just update bitmap — no re-colormapping
             self.im.set_data(rgba_img)
 
-        self.ax.set_title(title)
-
         # Force colorbar to show integer ticks instead of powers-of-two
         self.cbar.ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         self.cbar.ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
@@ -88,21 +64,9 @@ class ERDPlot:
 
         # Add lines at H, O, Si, Ti positions
         x_coords = [100, 120, 140, 160]
-        labels   = ["H", "O", "Si", "Ti"]
+        labels   = ["H", "O", "Si", "Ti"] # TODO: zet ergens in een config
 
         self.set_vertical_lines(x_coords, labels)
-
-        self.fig.canvas.draw()
-
-    def add_polygon_point(self, point: tuple[float, float]):
-        if self.fig is None:
-            self.create_plot()
-        self.polygon_points.append(point)
-        self._update_polygon()
-    
-    def _update_background(self, event=None):
-        if self.fig and self.ax:
-            self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
     
     def set_vertical_lines(
         self,
@@ -147,66 +111,13 @@ class ERDPlot:
                 self._vertical_labels.append(txt)
 
         self.fig.canvas.draw()
-
     
-    def clear_polygon_points(self):
-        if len(self.polygon_points) == 0:
-            return
-        
-        self.polygon_points = []
-        self._update_polygon()
-        self.fig.canvas.draw() # Force a full redraw so everything updates
+    def set_title(self, title: str):
+        self.ax.set_title(title)
     
-    def _update_polygon(self):
-        """Update the polygon overlay using blitting for efficiency."""
-        if self.background is None:
-            return
-
-        self.fig.canvas.restore_region(self.background)
-
-        if not self.polygon_points:
-            # Clear all polygon artists
-            self.scatter.set_offsets(np.empty((0, 2)))
-            self.polygon_line.set_data([], [])
-            self.closing_line.set_data([], [])
-        else:
-            x, y = zip(*self.polygon_points)
-            
-            # Update artists with new data
-            self.scatter.set_offsets(self.polygon_points)
-            self.polygon_line.set_data(x, y)
-            
-            if len(self.polygon_points) > 1:
-                self.closing_line.set_data([x[-1], x[0]], [y[-1], y[0]])
-            else:
-                self.closing_line.set_data([], [])
-        
-        # Redraw only the changed artists
-        self.ax.draw_artist(self.scatter)
-        self.ax.draw_artist(self.polygon_line)
-        self.ax.draw_artist(self.closing_line)
-
-        # Blit the updated axes to the canvas
-        self.fig.canvas.blit(self.ax.bbox)
-        self.fig.canvas.flush_events()
-
-
-    def get_selected_points(self):
-        if len(self.polygon_points) < 3:
-            return []
-        
-        # Add a column with the line number to extended data
-        # Create column with row indices (line numbers)
-        line_numbers = np.arange(len(self.extended_data)).reshape(-1, 1)
-
-        # Add it as the last column
-        result = np.hstack((self.extended_data, line_numbers))
-        
-        # Select points based on polygon
-        selected = points_in_polygon(result, self.polygon_points, x_index=1, y_index=2)
-        
-        # return only columns 0, 2 and 5 = (t_k, E_k, line number) respectively
-        return selected[:, [0, 2, 5]]
+    def _update_background(self, event=None):
+        if self.fig and self.ax:
+            self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
     
     def save(self, filename: str):
         self.create_plot()
