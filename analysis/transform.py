@@ -2,13 +2,14 @@ import numpy as np
 import json
 import os
 from utils.config import Config
+from pathlib import Path
 
 TOFCHMIN=Config.get_setting("tofchmin")
 TOFCHMAX=Config.get_setting("tofchmax")
 
 # public functions
 
-def load_bparams_file(filename: str) -> np.array:
+def load_bparams_file(filename: Path) -> np.array:
     """
     Opens the bparams file and parses the contents into a numpy array.
     filename: bparams (B0, B1, B2)
@@ -19,7 +20,7 @@ def load_bparams_file(filename: str) -> np.array:
         raise FileNotFoundError(f"Bparam file {filename} not found.")
     
     # check extension
-    ext = filename.split('.')[-1]
+    ext = filename.suffix[1:]
     if ext != "txt":
         raise NameError(f"`{filename}` has the wrong extension. Expected `txt`, got `{ext}`.")
     
@@ -48,7 +49,7 @@ def load_bparams_file(filename: str) -> np.array:
 
     return B0, B1, B2
 
-def load_tof_file(filename: str) -> tuple[float, float]:
+def load_tof_file(filename: Path) -> tuple[float, float]:
     """
     Opens a `Tof.in` file and returns the TOF calibration data.
     Returns (ns_ch, t_offs)
@@ -56,7 +57,7 @@ def load_tof_file(filename: str) -> tuple[float, float]:
     if not os.path.exists(filename):
         raise FileNotFoundError(f"Could not find `tof` file `{filename}`.")
 
-    if not filename.split('\\')[-1].split('/')[-1] == "Tof.in":
+    if not filename.name == "Tof.in":
         raise NameError(f"Unexpected name of file `{filename}`. Please follow the convention and rename this file to `Tof.in`.")
 
     try:
@@ -107,7 +108,7 @@ def extend_flt_data(flt_data: np.array, B0, B1, B2, ns_ch, t_offs):
         raise IOError("Error reading input file or writing output file.")
 
 
-def load_flt_file(filename: str) -> np.array:
+def load_flt_file(filename: Path) -> np.array:
     """
     Loads an flt file and returns it columns.
     """
@@ -116,7 +117,7 @@ def load_flt_file(filename: str) -> np.array:
         raise FileNotFoundError(f"`flt` file {filename} not found.")
     
     # check extension
-    ext = filename.split('.')[-1]
+    ext = filename.suffix[1:]
     if ext != "flt":
         raise NameError(f"`{filename}` has the wrong extension. Expected `flt`, got `{ext}`.")
 
@@ -130,7 +131,7 @@ def load_flt_file(filename: str) -> np.array:
     return np.asarray([[int(val) for val in line.split(' ')[:-1]] for line in lines[:-1]]) # ignore space at end of line and empty line at end of file
 
 
-def load_extended_file(filename: str) -> np.array:
+def load_extended_file(filename: Path) -> np.array:
     """
     Loads an .ext file and returns its columns as a numpy array.
     
@@ -145,7 +146,7 @@ def load_extended_file(filename: str) -> np.array:
         raise FileNotFoundError(f"Extended file {filename} not found.")
     
     # check extension
-    ext = filename.split('.')[-1]
+    ext = filename.suffix[1:]
     if ext != "ext":
         raise NameError(f"`{filename}` has the wrong extension. Expected `ext`, got `{ext}`.")
     
@@ -157,7 +158,7 @@ def load_extended_file(filename: str) -> np.array:
     return np.asarray([[float(val) for val in line.split(' ')[:-1]] for line in lines[:-1]]) # ignore space at end of line and empty line at end of file
 
 
-def dump_extended_file(data: np.array, filename: str) -> None:
+def dump_extended_file(data: np.array, filename: Path) -> None:
     """
     TODO: unit tests
     Dumps the data into an extended file.
@@ -170,13 +171,13 @@ def dump_extended_file(data: np.array, filename: str) -> None:
     """
 
     # check extension
-    ext = filename.split('.')[-1]
+    ext = filename.suffix[1:]
     if ext != "ext":
         raise NameError(f"`{filename}` has the wrong extension. Expected `ext`, got `{ext}`.")
 
     dump_dataframe(data)
 
-def dump_dataframe(data: np.array, filename: str) -> None:
+def dump_dataframe(data: np.array, filename: Path) -> None:
     # check extension
     lines = [
         ' '.join(str(number) for number in line) + ' '
@@ -187,11 +188,11 @@ def dump_dataframe(data: np.array, filename: str) -> None:
             '\n'.join(lines)
         )
     
-def dump_json(data: np.array, filename: str) -> None:
+def dump_json(data: np.array, filename: Path) -> None:
     with open(filename, 'w') as f:
         json.dump(data, f, indent=2)
     
-def load_dataframe(filename: str) -> np.array:
+def load_dataframe(filename: Path) -> np.array:
     # TODO: docs
     # TODO: replace functionality of above functions with this one.
     

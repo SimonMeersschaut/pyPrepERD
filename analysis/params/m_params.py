@@ -53,7 +53,6 @@ def generate_m_params(a_params: list) -> np.array:
             m1 = MINIMAL_M1
 
         # Try an aditional fit
-        
         try:
             if point_1 is None:
                 raise AbortedError()

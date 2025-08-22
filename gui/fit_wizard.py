@@ -4,10 +4,12 @@ import analysis
 import utils
 import os
 import glob
-
+from pathlib import Path
+from utils import FileHandler
 
 class FitWizard:
-    def __init__(self, master):
+    def __init__(self, master, filehandler: FileHandler):
+        self.filehandler = filehandler
         self.master = master
         
         self.selected_project: str = None
@@ -18,7 +20,7 @@ class FitWizard:
         self.window.title("pyPrepERD - Fit Wizard")
         self.window.geometry("500x400")
         self.window.minsize(500, 400)
-        self.window.iconbitmap(utils.IMAGES_PATH + "icon.ico")
+        self.window.iconbitmap(utils.IMAGES_PATH / "icon.ico")
 
         # Frame for folder selection
         folder_frame = tk.Frame(self.window)
@@ -40,7 +42,7 @@ class FitWizard:
         self.fit_btn["state"] = "disabled"
         self.fit_btn.pack(pady=5)
 
-        self.selected_project = "C:\\Users\\meerss01\\Desktop\\pyPrepERD\\tests\\gui\\example-project"
+        self.selected_project = "C:\\Users\\meerss01\\Desktop\\pyPrepERD\\tests\\gui\\example-project" # TODO: verander
         
         self.start_fit()
 
@@ -59,24 +61,25 @@ class FitWizard:
         self.tree.delete(*self.tree.get_children())
 
         # scan folder for subdirectories
-        subfolders = [f.path for f in os.scandir(folder) if f.is_dir() and not "raw" in f.path[0]] # TODO: `in` aanpassen
+        subfolders: list[Path] = [Path(f.path) for f in os.scandir(folder) if f.is_dir() and not "raw" in f.path[0]] # TODO: `in` aanpassen; Path
         
         if len(subfolders) == 0:
             raise ValueError("The selected folder did not contain any subfolders. Be sure to select a project folder.")
         
         for subfolder in subfolders:
             # search polygon cut
-            if not os.path.exists(subfolder+"/Cut-files"):
+            if not os.path.exists(subfolder / "Cut-files"):
                 raise FileNotFoundError(subfolder + " did not contain a `Cut-files` folder.")
             
-            cut_files = [file for file in glob.glob(subfolder+"/Cut-files/*.*") if not ".json" in file]
+            cut_files = [Path(file) for file in glob.glob(subfolder+"/Cut-files/*.*") if not ".json" in file]
             if len(cut_files) == 0:
                 raise FileNotFoundError(f"No cut files found in `{subfolder}/Cut-files/`.")
             elif len(cut_files) > 1:
                 raise FileNotFoundError(f"More than one cut file found in `{subfolder}/Cut-files/`.")
+            cut_file = cut_files[0]
             
-            measurement = subfolder.split('/')[-1].split('\\')[-1]
-            element = cut_files[0].split('.')[-1]
+            measurement = subfolder.name
+            element = cut_files.suffix
             self.tree.insert("", tk.END, values=(measurement, element))
 
         # Need at least two points to fit        
@@ -87,5 +90,5 @@ class FitWizard:
     
     def start_fit(self):
         m_params = analysis.generate_m_params(analysis.generate_a_params(self.selected_project))
-        analysis.save_m_params(m_params, "m_params.json")
+        analysis.save_m_params(m_params, self.filehandler.get_mparams_path())
         tk.messagebox.showinfo("Success", "Sucessfully fitted Bparams.")

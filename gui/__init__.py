@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox
 import analysis
-import ctypes
+from utils import FileHandler
 from .plot.plot_frame import PlotFrame
 from gui.plot.plot import Plot
 from .menu_bar import CustomMenuBar
@@ -14,18 +14,10 @@ import sys
 import threading
 import signal
 import glob
+from pathlib import Path
 
-if sys.platform.startswith("win"):
-    try:
-        from ctypes import windll
-        # Windows 8.1+  (1 = system DPI aware)
-        windll.shcore.SetProcessDpiAwareness(1)
-        # For Windows 10 per-monitor DPI awareness:
-        # windll.shcore.SetProcessDpiAwareness(2)
-    except Exception as e:
-        print(f"Could not set DPI awareness: {e}")
 
-WORK_DIR = "\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test\\01A"
+WORK_DIR = "\\\\winbe.imec.be\\wasp\\ruthelde\\Simon\\test\\01A" # TODO verander
 
 class WhiteTheme:
     def __init__(self, root):
@@ -55,17 +47,17 @@ class TkinterUi:
     WIDTH = 900
     HEIGHT = 800
 
-    def __init__(self, filehandler):
-        self.filehandler = filehandler
+    def __init__(self, filehandler:FileHandler):
+        self.filehandler:FileHandler = filehandler
 
         self.root = tk.Tk()
-        self.root.iconbitmap(utils.IMAGES_PATH + "icon.ico")
+        self.root.iconbitmap(utils.IMAGES_PATH / "icon.ico")
         self.root.title("pyPrepERD")
 
         self.menubar = CustomMenuBar(
             self.root,
             project_browser=ProjectBrowser(on_update=self.select_project),
-            fit_wizard=FitWizard(self.root)
+            fit_wizard=FitWizard(self.root, self.filehandler)
         )
         
         self.root.geometry(f"{TkinterUi.WIDTH-1}x{TkinterUi.HEIGHT-1}")
@@ -136,16 +128,17 @@ class TkinterUi:
                     raise ValueError(f"No flt files found in {path}.")
                 if len(flt_files) > 1:
                     raise ValueError(f"More than one flt file found in {path}.")
+                flt_file = Path(flt_files[0])
                 
                 self.plotframe.mpl_toolbar.set_project_dir(path)
                 
                 # --- Heavy work happens in the thread ---
-                flt_data = analysis.load_flt_file(flt_files[0])
+                flt_data = analysis.load_flt_file(flt_file)
                 ns_ch, t_offs = analysis.load_tof_file(utils.TOF_FILE_PATH)
                 B0, B1, B2 = analysis.load_bparams_file(utils.BPARAMS_FILE_PATH)
                 extended_data = analysis.extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
                 pixels, extent = create_grid(extended_data, x_index=1, y_index=2)
-                title = flt_files[0].split('\\')[-1].split('/')[-1].split('.')[0] + ".evt"
+                title = self.filehandler.get_stem(Path(flt_file)) + ".evt"
 
                 # Schedule UI update back on the main thread
                 self.root.after(0, lambda: self._update_plot(pixels, extended_data, title, extent))
@@ -155,6 +148,7 @@ class TkinterUi:
                 tkinter.messagebox.showerror("Error opening folder", str(e))
                 # Schedule GUI cleanup on main thread
                 self.root.after(0, lambda: self._cleanup_on_error())
+                raise e
 
         # Run the worker in a separate thread so the GUI stays responsive
         threading.Thread(target=worker, daemon=True).start()
