@@ -1,5 +1,5 @@
-import gui
 from utils import FileHandler
+import gui
 
 
 if __name__ == "__main__":

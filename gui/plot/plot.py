@@ -86,6 +86,12 @@ class Plot:
         self.cbar.set_ticks(ticks)
         self.cbar.ax.set_yticklabels([str(t) for t in ticks])
 
+        # Add lines at H, O, Si, Ti positions
+        x_coords = [100, 120, 140, 160]
+        labels   = ["H", "O", "Si", "Ti"]
+
+        self.set_vertical_lines(x_coords, labels)
+
         self.fig.canvas.draw()
 
     def add_polygon_point(self, point: tuple[float, float]):
@@ -97,6 +103,51 @@ class Plot:
     def _update_background(self, event=None):
         if self.fig and self.ax:
             self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
+    
+    def set_vertical_lines(
+        self,
+        x_coords: list[float],
+        labels: list[str] = None,
+        y_max: float = 1500,
+        color="red",
+        linestyle="-",
+        linewidth=1,
+    ):
+        """Draw vertical lines up to y_max with optional labels above them."""
+
+        # Remove old lines and labels if they exist
+        if hasattr(self, "_vertical_artists"):
+            for line in self._vertical_artists:
+                line.remove()
+        if hasattr(self, "_vertical_labels"):
+            for txt in self._vertical_labels:
+                txt.remove()
+
+        # Draw new lines
+        self._vertical_artists = [
+            self.ax.vlines(x, ymin=0, ymax=y_max, color=color,
+                           linestyle=linestyle, linewidth=linewidth, zorder=4)
+            for x in x_coords
+        ]
+
+        # Draw new labels if provided
+        self._vertical_labels = []
+        if labels is not None:
+            for x, lbl in zip(x_coords, labels):
+                txt = self.ax.text(
+                    x,
+                    5500,
+                    lbl,
+                    color=color,
+                    ha="center",
+                    va="bottom",
+                    fontsize=10,
+                    zorder=5
+                )
+                self._vertical_labels.append(txt)
+
+        self.fig.canvas.draw()
+
     
     def clear_polygon_points(self):
         if len(self.polygon_points) == 0:

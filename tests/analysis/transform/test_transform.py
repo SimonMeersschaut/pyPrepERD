@@ -2,11 +2,12 @@ import unittest
 import utils
 import os
 from analysis import load_bparams_file, load_tof_file, extend_flt_data, load_flt_file
+from pathlib import Path
 
 
 class TestTransform(unittest.TestCase):
     def test_load_bparams(self):
-        B0, B1, B2 = load_bparams_file("tests/analysis/transform/Bparams.txt")
+        B0, B1, B2 = load_bparams_file(Path("tests/analysis/transform/Bparams.txt"))
 
         # read expected values
         with open("tests/analysis/transform/Bparams.txt", 'r') as f:
@@ -24,7 +25,7 @@ class TestTransform(unittest.TestCase):
             self.assertEqual(expected_lines[i][2], B2[i], f"Line {i}, value 2 was unexpected.")
         
     def test_load_tof_file(self):
-        ns_ch, t_offs = load_tof_file("tests/analysis/transform/Tof.in")
+        ns_ch, t_offs = load_tof_file(Path("tests/analysis/transform/Tof.in"))
 
         self.assertEqual(5.82033E-11, ns_ch, "`ns_ch` not the expected result.")
         self.assertEqual(-4.28867E-09, t_offs, "`t_offs` not the expected result.")
@@ -36,7 +37,7 @@ class TestTransform(unittest.TestCase):
     def test_load_flt_data(self):
         """
         """
-        flt_data = load_flt_file("tests/analysis/transform/ERD25_090_02A.flt")
+        flt_data = load_flt_file(Path("tests/analysis/transform/ERD25_090_02A.flt"))
 
         self.assertEqual(680089, len(flt_data), "Length of flt_data was unexpected.")
         
@@ -45,9 +46,9 @@ class TestTransform(unittest.TestCase):
     def test_extend_flt_data(self):
         """
         """
-        flt_data = load_flt_file("tests/analysis/transform/ERD25_090_02A.flt")
-        B0, B1, B2 = load_bparams_file("tests/analysis/transform/Bparams.txt")
-        ns_ch, t_offs = load_tof_file("tests/analysis/transform/Tof.in")
+        flt_data = load_flt_file(Path("tests/analysis/transform/ERD25_090_02A.flt"))
+        B0, B1, B2 = load_bparams_file(Path("tests/analysis/transform/Bparams.txt"))
+        ns_ch, t_offs = load_tof_file(Path("tests/analysis/transform/Tof.in"))
         extended_data = extend_flt_data(flt_data, B0, B1, B2, ns_ch, t_offs)
 
         # read expected result

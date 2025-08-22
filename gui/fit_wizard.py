@@ -5,10 +5,10 @@ import utils
 import os
 import glob
 from pathlib import Path
-from utils import FileHandler
+# from utils import FileHandler
 
 class FitWizard:
-    def __init__(self, master, filehandler: FileHandler):
+    def __init__(self, master, filehandler):
         self.filehandler = filehandler
         self.master = master
         

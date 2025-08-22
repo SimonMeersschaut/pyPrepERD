@@ -1,8 +1,8 @@
 from gui.plot import Plot
 from .grid import create_grid
 from .polygon import points_in_polygon
-from .file_handler import FileHandler
 from .file_handler import IMAGES_PATH, CONFIG_PATH, TOF_FILE_PATH, BPARAMS_FILE_PATH, ATOMIC_WEIGHTS_TABLE_FILE
+from .file_handler import FileHandler
 from .config import Config
 
 

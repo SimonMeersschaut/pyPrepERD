@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox
 import analysis
-from utils import FileHandler
+# from utils import FileHandler
 from .plot.plot_frame import PlotFrame
 from gui.plot.plot import Plot
 from .menu_bar import CustomMenuBar
@@ -47,8 +47,8 @@ class TkinterUi:
     WIDTH = 900
     HEIGHT = 800
 
-    def __init__(self, filehandler:FileHandler):
-        self.filehandler:FileHandler = filehandler
+    def __init__(self, filehandler):
+        self.filehandler = filehandler
 
         self.root = tk.Tk()
         self.root.iconbitmap(utils.IMAGES_PATH / "icon.ico")

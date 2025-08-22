@@ -1,6 +1,7 @@
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 from matplotlib.backend_bases import NavigationToolbar2
-from .custom_dropdown import CustomDropdown
+# from .custom_dropdown import CustomDropdown
+from .polygon_history import PolygonHistory
 from enum import Enum
 import tkinter as tk
 from tkinter import messagebox
@@ -103,14 +104,15 @@ class CustomToolBar(NavigationToolbar2Tk):
             ToolButton(CUSTOM, 'Polygon', 'Draw a polygon', 'polygon', 'draw_polygon'),
             ToolButton(CUSTOM, 'Clear', 'Clear the current polygon', 'clear_polygon', 'clear_polygon'),
             ToolDropdown(CUSTOM, '', '', 'update_element_dropdown'),
+            ToolButton(CUSTOM, 'History', 'Open polygon history', 'open_polygon_history', 'open_polygon_history'),
             ToolButton(ORIGINAL, 'Save', 'Save the selected polygon', 'filesave', 'export_polygon'),
             # ToolSpacer(),
             # ToolButton(CUSTOM, 'Help', 'Open help', 'question_mark', 'open_help'),
         )
-
-        if window is None:
-            window = canvas.get_tk_widget().master
-        tk.Frame.__init__(self, master=window, borderwidth=2,
+        self.window = window
+        if self.window is None:
+            self.window = canvas.get_tk_widget().master
+        tk.Frame.__init__(self, master=self.window, borderwidth=2,
                           width=int(canvas.figure.bbox.width), height=50)
 
         self._buttons = {}
@@ -141,7 +143,7 @@ class CustomToolBar(NavigationToolbar2Tk):
                     command=getattr(self, toolitem.callback),
                 )
 
-        self._label_font = tkinter.font.Font(root=window, size=10)
+        self._label_font = tkinter.font.Font(root=self.window, size=10)
 
         # This filler item ensures the toolbar is always at least two text
         # lines high. Otherwise the canvas gets redrawn as the mouse hovers
@@ -229,8 +231,10 @@ class CustomToolBar(NavigationToolbar2Tk):
             analysis.dump_dataframe(output, self.current_project_dir+f"/Cut-files/cut.{self.selected_atom}")
 
             # dump polygon points
-            with open(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json", 'w') as f:
+            with open(self.current_project_dir+f"/Cut-files/{self.selected_atom}.polygon.json", 'w') as f: # TODO: replace
                 json.dump(self.plot.polygon_points, f)
+            
+            utils.Config.add_polygon_to_history(atom=self.selected_atom, dir=self.current_project_dir, polygon=self.plot.polygon_points)
 
             messagebox.showinfo("Success", "Sucessfully saved this cut in the project folder.")
         except Exception as e:
@@ -276,5 +280,17 @@ class CustomToolBar(NavigationToolbar2Tk):
             # clear
             self.clear_polygon()
         
-    def open_help(self):
-        tkinter.messagebox.showinfo("Help", utils.HELP_TEXT)
+    # def open_help(self):
+    #     tkinter.messagebox.showinfo("Help", utils.HELP_TEXT)
+    
+    def open_polygon_history(self):
+        def _set_polygon_points(self, polygon):
+            self.plot.polygon_points = polygon
+            self.plot._update_polygon()
+        
+        polygon_history = PolygonHistory(
+            self.window,
+            None,
+            callback=lambda polygon: _set_polygon_points(self, polygon)
+        )
+        polygon_history.start()

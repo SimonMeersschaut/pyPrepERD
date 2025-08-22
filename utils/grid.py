@@ -9,6 +9,7 @@ def index_to_rect(x_index, y_index):
 
 
 def create_grid(extended_data, x_index:int, y_index:int, downscale:bool=False, target_size:int=1000):
+    """Returns pixels, extent"""
     x_vals = extended_data[:, x_index]
     y_vals = extended_data[:, y_index]
 

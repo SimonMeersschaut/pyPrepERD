@@ -30,7 +30,8 @@ class FileHandler:
             raise FolderNotFoundError(self._remote)
     
     def path_exists(self, path: Path):
-        return path.is_dir()
+        return path.is_dir() or path.is_file()
+    
 
     def get_stem(self, path: Path):
         """
@@ -47,5 +48,10 @@ class FileHandler:
     def get_remote_path(self):
         return self._remote
 
+    def get_root_path(self):
+        return self._root
+
     def get_mparams_path(self):
         return self._remote / "transfer_ERD" / "erd_settings" / "Mparams.json"
+
+    

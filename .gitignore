@@ -7,3 +7,6 @@ tests/**/output/
 
 # Bparams will change at runtime
 config/Bparams.txt
+
+# Ignore all user data
+userdata/

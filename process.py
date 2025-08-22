@@ -32,13 +32,13 @@ def handle_folder(path: str):
 
         # Create plots
         title = lst_file.replace(".lst", ".evt.png")
-        pixels = utils.create_grid(extended_data, x_index=1, y_index=2)
+        pixels, _ = utils.create_grid(extended_data, x_index=1, y_index=2)
         plot = Plot()
         plot.set_data(pixels, extended_data, title)
         plot.save(title)
 
         title = lst_file.replace(".lst", ".mvt.png")
-        pixels = utils.create_grid(extended_data, x_index=1, y_index=4)
+        pixels, _ = utils.create_grid(extended_data, x_index=1, y_index=4)
         plot = Plot()
         plot.set_data(pixels, extended_data, title)
         plot.save(title)
