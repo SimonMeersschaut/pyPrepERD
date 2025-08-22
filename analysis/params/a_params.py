@@ -1,6 +1,6 @@
 from analysis import load_dataframe
 from utils.grid import create_grid
-from gui.plot import Plot
+from gui.plot import ERDPlot
 import numpy as np
 from scipy.optimize import curve_fit
 import utils
@@ -87,7 +87,7 @@ def cut_data_to_a_params(cut_data: np.array) -> tuple:
     return a1, a2, a3
 
 def _create_plot(cut_data, subfolder, a1, a2, a3):
-    plot = Plot()
+    plot = ERDPlot()
     grid, extent = create_grid(cut_data, x_index=0, y_index=1, downscale=True) # (tof, energy)
     plot.extent = extent
     plot.set_data(grid, None, f"Fit {Path(subfolder).name} {a1:.2f} + {a2:.2f} * (1/x-{a3:.2f})")

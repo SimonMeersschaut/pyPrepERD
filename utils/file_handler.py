@@ -26,7 +26,7 @@ class FolderNotFoundWarning(Warning):
 class FileHandler:
     def __init__(self, remote_not_found_ok=False):
         self._root = Path("") # root of project
-        self._remote = Path("R:\\")
+        self._remote = Path("W:\\")
         
         if not self.path_exists(self._root):
             raise FolderNotFoundError(self._root)

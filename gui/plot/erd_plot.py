@@ -7,7 +7,7 @@ import numpy as np
 from utils.polygon import points_in_polygon
 
 @dataclass
-class Plot:
+class ERDPlot:
     def __init__(self):
         self.ax: plt.Axes = field(init=False, default=None)
         self.extent = None # set later

@@ -2,8 +2,6 @@ from matplotlib.path import Path
 import numpy as np
 
 
-# TODO: use x_index, y_index
-
 def points_in_polygon(extended_data: list[float, float], polygon_vertices: list[ tuple[float, float] ], x_index: int = 1, y_index:int = 2) -> list:
     """
     Returns the points contained in a polygon.

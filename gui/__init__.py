@@ -4,7 +4,7 @@ import tkinter.messagebox
 import analysis
 # from utils import FileHandler
 from .plot.plot_frame import PlotFrame
-from gui.plot.plot import Plot
+from gui.plot import InteractiveERDPlot
 from .menu_bar import CustomMenuBar
 from .project_browser import ProjectBrowser
 from .fit_wizard import FitWizard
@@ -88,7 +88,7 @@ class TkinterUi:
         self.graph_frame = ttk.Frame(main_frame, padding="10", style='DarkFrame.TFrame')
         self.graph_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.plot = Plot()
+        self.plot = InteractiveERDPlot()
         self.plotframe = PlotFrame(self.plot)
         self.plotframe.render_frame(self.graph_frame)
 
