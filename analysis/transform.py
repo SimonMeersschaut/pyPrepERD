@@ -121,14 +121,7 @@ def load_flt_file(filename: Path) -> np.array:
     if ext != "flt":
         raise NameError(f"`{filename}` has the wrong extension. Expected `flt`, got `{ext}`.")
 
-    # Load file
-    with open(filename, 'r') as f:
-        content = f.read()
-    
-    lines = content.split('\n')
-    if len(lines) == 0:
-        raise RuntimeError()
-    return np.asarray([[int(val) for val in line.split(' ')[:-1]] for line in lines[:-1]]) # ignore space at end of line and empty line at end of file
+    return load_dataframe(filename)
 
 
 def load_extended_file(filename: Path) -> np.array:
@@ -150,13 +143,8 @@ def load_extended_file(filename: Path) -> np.array:
     if ext != "ext":
         raise NameError(f"`{filename}` has the wrong extension. Expected `ext`, got `{ext}`.")
     
-    # Load file
-    with open(filename, 'r') as f:
-        content = f.read()
-    
-    lines = content.split('\n')
-    return np.asarray([[float(val) for val in line.split(' ')[:-1]] for line in lines[:-1]]) # ignore space at end of line and empty line at end of file
 
+    return load_dataframe(filename)
 
 def dump_extended_file(data: np.array, filename: Path) -> None:
     """
@@ -178,7 +166,8 @@ def dump_extended_file(data: np.array, filename: Path) -> None:
     dump_dataframe(data)
 
 def dump_dataframe(data: np.array, filename: Path) -> None:
-    # check extension
+    # TODO check extension
+
     lines = [
         ' '.join(str(number) for number in line) + ' '
         for line in data
@@ -193,8 +182,10 @@ def dump_json(data: np.array, filename: Path) -> None:
         json.dump(data, f, indent=2)
     
 def load_dataframe(filename: Path) -> np.array:
-    # TODO: docs
-    # TODO: replace functionality of above functions with this one.
+    """
+    Loads a file and returns its data.
+    Expects the format : csv with space seperation instead of commas.
+    """
     
     # Load file
     with open(filename, 'r') as f:
